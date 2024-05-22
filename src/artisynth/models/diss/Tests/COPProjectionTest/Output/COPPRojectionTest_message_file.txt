@@ -1,0 +1,30 @@
+%%----------------------- MESSAGE FILE -----------------------%%
+%% Author: Alexander Denk, Copyright (c) 2024                 %%
+%% (UDE) University of Duisburg-Essen                         %%
+%% Chair of Mechanics and Robotics                            %%
+%% alexander.denk@uni-due.de                                  %%
+%%------------------------------------------------------------%%
+
+------------------------- TIME	0.01 --------------------------
+
+PROJECT COPs FOR FORCE APPLICATION
+FOUND RIGHT COP AT	0.373 -0.007 0.130
+FOUND LEFT COP AT	0.809 -0.007 -0.049
+
+FOUND CLOSEST BODY FOR 0.373 -0.007 0.130:	box
+
+ATTEMPT TO FIND INTERSECTIONS ON box
+FOUND 2 INTERSECTIONS.
+0.373 0.000 0.130
+0.373 0.100 0.130
+FOUND CLOSEST INTERSECTION FOR PROJECTION: 0.373 0.000 0.130
+PROJECTED COP TO: 0.373 0.000 0.130
+
+FOUND CLOSEST BODY FOR 0.809 -0.007 -0.049:	box
+
+ATTEMPT TO FIND INTERSECTIONS ON box
+WARNING: NO INTERSECTION FOUND.
+TAKE NEAREST VERTEX INSTEAD: 0.450 0.000 0.050
+PROJECTED COP TO: 0.450 0.000 0.050
+
+PROCEED WITH INVERSE OPTIMIZATION

@@ -1,0 +1,65 @@
+Oracle has an online Java tutorial located at
+
+https://docs.oracle.com/javase/tutorial
+
+For ArtiSynth development purposes, we recommend studying the following
+topics under "Trails Covering the Basics":
+
+* Getting Started
+
+The tutorial suggests using the NetBeans IDE (integrated development
+environment). Most current ArtiSynth users work with the Eclipse IDE,
+and Eclipse is the IDE discussed in the ArtiSynth install documentation.
+However, you can use any IDE you like.
+
+* Learning the Java language
+
+Try to learn everything here, except for maybe just skimming the Generics
+section, which is likely to be more difficult. You should know enough about
+generics to understand what it means to qualifier a generic class with a 
+type (e.g., ArrayList<Point3d>, ArrayList<Matrix>, HashMap<String,Double>).
+
+* Essential Java Classes
+
+Study the sections on Exceptions and Basic I/O.
+
+* Collections
+
+Study the Introduction, Interfaces, and Implementations. The main collection
+implementations that you need to know about are ArrayList<>, HashSet<> and 
+HashMap<>. Trees and Deques you almost certainly won't need.
+
+The example codes "TestFEM" and "OpenSimTest" are commented on for new 
+users to understand the basic structure of Artisynth models. Particularly 
+useful reference material includes the web-based Artisynth manual
+(https://www.artisynth.org/manuals/index.jsp), with the following chapters 
+being crucial:
+
+Artisynth Modeling Guide
+1.1 System structure
+1.5 Creating an Application Model
+
+2 Supporting classes, especially
+2.4 Spatial vectors and inertias
+
+3.1.3 Dynamic, parametric and attached components
+3.2 Rigid Bodies
+3.3 Joints and connectors
+
+4.1 Simulation control properties
+4.2 Units
+4.8 Custom Joints
+
+5.3 Controllers and monitors
+5.4 Probes
+
+6 Finite Element Models, especially
+6.1 Overview, 
+6.2 Model Creation and
+6.4 Connecting FEM Models to other components
+
+7 Contact and Collision
+
+A.4 Rotational velocity
+A.5 Spatial velocities and forces
+A.6 Spatial Inertia

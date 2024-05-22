@@ -1,4 +1,4 @@
-package artisynth.models.ModelsDiss;
+package artisynth.models.diss;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
+
 import artisynth.core.inverse.ForceTargetTerm;
 import artisynth.core.inverse.TargetPoint;
 import artisynth.core.inverse.TrackingController;
@@ -21,7 +22,9 @@ import artisynth.core.modelbase.ModelComponent;
 import artisynth.core.probes.MarkerMotionData;
 import artisynth.core.probes.NumericInputProbe;
 import artisynth.core.util.ArtisynthPath;
-import artisynth.models.ModelsDiss.MOTReader.ForceData;
+import artisynth.models.diss.MOTReader.ForceData;
+import artisynth.models.diss.Tests.*;
+
 import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;

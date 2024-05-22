@@ -1,6 +1,6 @@
 // Where the model resides in the project tree. Models, that are located 
 // within artisynth.models are already visible to the Artisynth compiler.
-package artisynth.models.ModelsDiss;
+package artisynth.models.diss.Tests;
 
 // Every additional data that needs to be included to run the code
 import java.awt.Color;

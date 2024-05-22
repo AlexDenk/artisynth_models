@@ -1,4 +1,4 @@
-package artisynth.models.ModelsDiss;
+package artisynth.models.diss;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,6 +11,7 @@ import artisynth.core.mechmodels.CollisionResponseList;
 import artisynth.core.mechmodels.ContactData;
 import artisynth.core.modelbase.MonitorBase;
 import artisynth.core.util.ArtisynthPath;
+import artisynth.models.diss.Tests.*;
 
 /**
  * The contact monitor acts as a monitor (see artisynth manual for further

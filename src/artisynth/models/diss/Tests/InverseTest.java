@@ -1,4 +1,4 @@
-package artisynth.models.ModelsDiss;
+package artisynth.models.diss.Tests;
 
 //import ilog.cplex.IloCplex;
 

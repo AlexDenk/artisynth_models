@@ -1,4 +1,4 @@
-package artisynth.models.ModelsDiss;
+package artisynth.models.diss;
 
 import java.io.*;
 import java.util.ArrayList;

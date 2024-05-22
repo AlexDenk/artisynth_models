@@ -1,4 +1,4 @@
-package artisynth.models.ModelsDiss;
+package artisynth.models.diss.Tests;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -7,12 +7,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -29,7 +26,6 @@ import artisynth.core.inverse.ConnectorForceRenderer;
 import artisynth.core.inverse.ForceTarget;
 import artisynth.core.inverse.ForceTargetTerm;
 import artisynth.core.inverse.MotionTargetTerm;
-import artisynth.core.inverse.TrackingController;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
@@ -56,7 +52,11 @@ import artisynth.core.probes.TRCReader;
 import artisynth.core.renderables.ColorBar;
 import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
-import artisynth.models.ModelsDiss.MOTReader.ForceData;
+import artisynth.models.diss.ContactMonitor;
+import artisynth.models.diss.MOTReader;
+import artisynth.models.diss.MOTReader.ForceData;
+import artisynth.models.diss.MarkerMapping;
+import artisynth.models.diss.MotionTargetController;
 
 import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
@@ -335,7 +335,7 @@ public class OpenSimTest extends RootModel {
          RenderProps.setPointColor (m, Color.PINK);
       });
       // Access source and target points of the motion target controller
-      TrackingController controller =
+      MotionTargetController controller =
          (MotionTargetController)getControllers ().get (0);
       controller.getTargetPoints ().forEach (c -> {
          RenderProps.setPointColor (c, Color.WHITE);

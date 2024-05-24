@@ -13,27 +13,6 @@ import maspack.util.UnitTest;
 public class MotionTargetControllerTest extends UnitTest {
 
    public void testSetFrame () {
-      RigidBody box1  = RigidBody.createBox("box1",1, 1, 1, 100);
-      box1.setPose(new RigidTransform3d(1, 1, 1));
-      RigidBody box2  = RigidBody.createBox("box2",1, 1, 1, 100);
-      box1.setPose(new RigidTransform3d(3, 3, 3));
-      RigidBody box3  = RigidBody.createBox("box3",1, 1, 1, 100);
-      box1.setPose(new RigidTransform3d(5, 5, 5));
-      
-      FrameMarker mkr1 = new FrameMarker("mkr1");
-      mkr1.setFrame(box1);
-      FrameMarker mkr2 = new FrameMarker("mkr2");
-      mkr2.setFrame(box2);
-      FrameMarker mkr3 = new FrameMarker("mkr3");
-      mkr3.setFrame(box3);
-      
-      Point3d ref1 = new Point3d(box1.getPosition ());
-      Point3d ref2 = new Point3d(box2.getPosition ());
-      Point3d ref3 = new Point3d(box3.getPosition ());
-      
-      
-      
-      
    }
 
    public void testIsPointInside () {

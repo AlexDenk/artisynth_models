@@ -2,29 +2,45 @@ package artisynth.models.diss.Tests;
 
 import java.util.ArrayList;
 
+import artisynth.core.mechmodels.FrameMarker;
 import artisynth.core.mechmodels.RigidBody;
 import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.matrix.Point3d;
+import maspack.matrix.RigidTransform3d;
 import maspack.util.UnitTest;
 
 public class MotionTargetControllerTest extends UnitTest {
 
-   public void testProjectToFrameSurface () {
-      // write test details here
+   public void testSetFrame () {
+      RigidBody box1  = RigidBody.createBox("box1",1, 1, 1, 100);
+      box1.setPose(new RigidTransform3d(1, 1, 1));
+      RigidBody box2  = RigidBody.createBox("box2",1, 1, 1, 100);
+      box1.setPose(new RigidTransform3d(3, 3, 3));
+      RigidBody box3  = RigidBody.createBox("box3",1, 1, 1, 100);
+      box1.setPose(new RigidTransform3d(5, 5, 5));
+      
+      FrameMarker mkr1 = new FrameMarker("mkr1");
+      mkr1.setFrame(box1);
+      FrameMarker mkr2 = new FrameMarker("mkr2");
+      mkr2.setFrame(box2);
+      FrameMarker mkr3 = new FrameMarker("mkr3");
+      mkr3.setFrame(box3);
+      
+      Point3d ref1 = new Point3d(box1.getPosition ());
+      Point3d ref2 = new Point3d(box2.getPosition ());
+      Point3d ref3 = new Point3d(box3.getPosition ());
+      
+      
+      
+      
    }
 
    public void testIsPointInside () {
-      System.out.println ("Is Point Inside Test");
       RigidBody box = RigidBody.createBox ("box", 1, 1, 1, 100);
-
       Point3d ref = new Point3d (box.getPosition ());
       PolygonalMesh mesh = box.getCollisionMesh ();
       Face f = mesh.getFace (0);
-      System.out.println ("Face: 0");
-      System.out
-         .println (
-            f.getPoint (0) + "\t" + f.getPoint (1) + "\t" + f.getPoint (2));
 
       ArrayList<Point3d> points = new ArrayList<Point3d> ();
       points.add (new Point3d (0, 0, -0.5));
@@ -45,6 +61,24 @@ public class MotionTargetControllerTest extends UnitTest {
 
       double insideTriangleTolerance = 1e-13;
 
+      ArrayList<Integer> expected = new ArrayList<Integer> ();
+      expected.add (0);
+      expected.add (1);
+      expected.add (1);
+      expected.add (1);
+      expected.add (0);
+      expected.add (1);
+      expected.add (0);
+      expected.add (0);
+      expected.add (1);
+      expected.add (1);
+      expected.add (0);
+      expected.add (1);
+      expected.add (1);
+      expected.add (0);
+      expected.add (0);
+
+      ArrayList<Integer> results = new ArrayList<Integer> ();
       for (Point3d sec : points) {
          // Get all vertices in world coordinates
          Point3d x0 = f.getPoint (0);
@@ -74,18 +108,20 @@ public class MotionTargetControllerTest extends UnitTest {
          sum = sum - area;
 
          if (Math.abs (sum) < insideTriangleTolerance) {
-            System.out.println ("Point " + sec + " is inside.");
+            results.add (0);
          }
          else {
-            System.out.println ("Point " + sec + " is not inside.");
+            results.add (1);
          }
+         checkEquals ("Point inside", results.get (0), expected.get (0));
       }
    }
 
    // add other tests you want to be performed
 
    public void test () {
-      testProjectToFrameSurface ();
+      testSetFrame ();
+      testIsPointInside ();
    }
 
    public static void main (String[] args) {

@@ -38,7 +38,7 @@ import maspack.matrix.Vector3d;
  * projection of COPs onto the model surface for force application. All
  * projection and inverse simulation details are written to a *_message_file.txt
  * in the current working directory.
- *  <p>
+ * <p>
  * Changelog: Search for comments with my name. Visibility of
  * getVelocityJacobian method in MotionTargetTerm from private to public. Added
  * getFrame method to MarkerMotionData. Rewrote an own isPointInside method
@@ -129,7 +129,7 @@ public class MotionTargetController extends TrackingController {
       // Update system time in the model for COP rendering
       OpenSimTest.updateSystemTime (t1);
       // Provide message header
-      String newLine = System.lineSeparator ();
+      String newLine = "\n";
       StringBuilder header = new StringBuilder ();
       header
          .append (newLine).append ("------------------------- TIME\t")
@@ -277,18 +277,21 @@ public class MotionTargetController extends TrackingController {
     */
    private Point3d findClosestPoint (
       Point3d cop, ArrayList<Point3d> candidates) {
-      Point3d clst = new Point3d (0, 0, 0);
-      double minDist = Double.MAX_VALUE;
-      for (Point3d pnt : candidates) {
-         double dist = pnt.distance (cop);
-         if (dist < minDist) {
-            minDist = dist;
-            clst = pnt;
-            message
-               .append (pnt.toString ("%.3f")).append (System.lineSeparator ());
+      if (candidates.size () != 0) {
+         Point3d clst = new Point3d (0, 0, 0);
+         double minDist = Double.MAX_VALUE;
+         for (Point3d pnt : candidates) {
+            double dist = pnt.distance (cop);
+            if (dist < minDist) {
+               minDist = dist;
+               clst = pnt;
+            }
          }
+         return clst;
       }
-      return clst;
+      else {
+         return null;
+      }
    }
 
    /**
@@ -303,6 +306,7 @@ public class MotionTargetController extends TrackingController {
     * @return closest body frame related to the COP position
     */
    private Frame findClosestBody (Double t1, Point3d cop) {
+      // just for convenience of the first iteration
       double minDist = Double.MAX_VALUE;
       FrameMarker nearest = null;
       // Distance calculation and comparison
@@ -320,9 +324,9 @@ public class MotionTargetController extends TrackingController {
       if (nearest != null) {
          Frame body = (Frame)nearest.getFrame ();
          message
-            .append (System.lineSeparator ()).append ("FOUND CLOSEST BODY FOR ")
+            .append ("\n").append ("FOUND CLOSEST BODY FOR ")
             .append (cop.toString ("%.3f")).append (":\t")
-            .append (body.getName ()).append (System.lineSeparator ());
+            .append (body.getName ()).append ("\n");
 
          return body;
       }
@@ -449,9 +453,8 @@ public class MotionTargetController extends TrackingController {
          ArrayList<Integer> indexes = new ArrayList<Integer> ();
          message
             .append (
-               System.lineSeparator () + "ATTEMPT TO FIND VERTICES ON "
-               + frame.getName () + " WITHIN " + tol + " m TOLERANCE."
-               + System.lineSeparator ());
+               "\n" + "ATTEMPT TO FIND VERTICES ON " + frame.getName ()
+               + " WITHIN " + tol + " m TOLERANCE." + "\n");
          vertices.forEach (v -> {
             // Use world point instead of position for actual position
             // in world coords
@@ -470,22 +473,18 @@ public class MotionTargetController extends TrackingController {
          if (points.size () == 0) {
             clst = new Point3d (0, 0, 0);
             mesh.distanceToPoint (clst, cop);
-            message
-               .append (
-                  "WARNING: NO VERTEX FOUND WITHIN RANGE."
-                  + System.lineSeparator ());
+            message.append ("WARNING: NO VERTEX FOUND WITHIN RANGE." + "\n");
             message
                .append (
                   "TAKE NEAREST VERTEX INSTEAD: " + clst.toString ("%.3f")
-                  + System.lineSeparator ());
+                  + "\n");
             clst.sub ((Vector3d)ref);
          }
          // Proceed with points found
          else {
             message
                .append (
-                  "FOUND " + points.size () + " VERTICES WITHIN RANGE."
-                  + System.lineSeparator ());
+                  "FOUND " + points.size () + " VERTICES WITHIN RANGE." + "\n");
             // Search for the closest member in points
             ArrayList<Double> distances = new ArrayList<Double> ();
             points.forEach (p -> {
@@ -494,7 +493,7 @@ public class MotionTargetController extends TrackingController {
                dist.y = p.y - cop.y;
                dist.z = p.z - cop.z;
                distances.add (dist.norm ());
-               message.append (p.toString ("%.3f") + System.lineSeparator ());
+               message.append (p.toString ("%.3f") + "\n");
             });
             // find the index of min distance within the stream object of
             // distances
@@ -504,7 +503,7 @@ public class MotionTargetController extends TrackingController {
             // get the position of the clostest vertex
             clst = mesh.getVertex (indexes.get (idx)).getWorldPoint ();
             message.append ("FOUND CLOSEST VERTEX FOR PROJECTION: ");
-            message.append (clst.toString ("%.3f") + System.lineSeparator ());
+            message.append (clst.toString ("%.3f") + "\n");
             // Calculate location vector
             clst.sub ((Vector3d)ref);
          }
@@ -547,9 +546,9 @@ public class MotionTargetController extends TrackingController {
       Point3d ref = new Point3d (frame.getPosition ());
       ArrayList<Point3d> candidates = new ArrayList<Point3d> ();
       message
-         .append (System.lineSeparator ())
-         .append ("ATTEMPT TO FIND INTERSECTIONS ON ").append (frame.getName ())
-         .append (System.lineSeparator ());
+         .append ("\n").append ("ATTEMPT TO FIND INTERSECTIONS ON ")
+         .append (frame.getName ()).append (" ").append (ref.toString ("%.3f"))
+         .append ("\nAVAILABLE CANDIDATES\n");
       for (Face f : mesh.getFaces ()) {
          Vector3d norm = f.getNormal ();
          // Check for planes nearly parallel to the projection vector
@@ -558,7 +557,7 @@ public class MotionTargetController extends TrackingController {
          }
          // Query point v_1 on plane (in local coords)
          Point3d v1Local = f.getPoint (0);
-         // world coords
+         // transform to world coords
          Point3d v1World = new Point3d (0, 0, 0);
          v1World.add (v1Local, ref);
          // project distance between cop and v_1 on projection vector
@@ -570,33 +569,31 @@ public class MotionTargetController extends TrackingController {
          // Check if the point is within the face
          if (isPointInside (f, intersection, ref)) {
             candidates.add (intersection);
+            message.append (intersection.toString ("%.3f")).append ("\n");
          }
       }
       Point3d clst = findClosestPoint (cop, candidates);
       if (clst == null) {
          clst = new Point3d (0, 0, 0);
          mesh.distanceToPoint (clst, cop);
-         clst.sub ((Vector3d)ref);
          message
-            .append ("WARNING: NO INTERSECTION FOUND.")
-            .append (System.lineSeparator ())
+            .append ("WARNING: NO INTERSECTION FOUND.").append ("\n")
             .append ("TAKE NEAREST VERTEX INSTEAD: ")
-            .append (clst.toString ("%.3f")).append (System.lineSeparator ());
+            .append (clst.toString ("%.3f")).append ("\n");
       }
       else {
          message
             .append ("FOUND CLOSEST INTERSECTION FOR PROJECTION: ")
-            .append (clst.toString ("%.3f")).append (System.lineSeparator ());
+            .append (clst.toString ("%.3f")).append ("\n");
       }
 
       // Update the FrameMarker to the calculated location
       copRef.setFrame (frame);
       copRef.setRefPos (ref);
-      copRef.setLocation (clst);
+      copRef.setLocation ((Point3d)clst.sub (ref));
       message
          .append ("PROJECTED COP TO: ")
-         .append (copRef.getPosition ().toString ("%.3f"))
-         .append (System.lineSeparator ());
+         .append (copRef.getPosition ().toString ("%.3f")).append ("\n");
    }
 
    /**

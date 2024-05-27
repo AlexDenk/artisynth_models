@@ -26,6 +26,7 @@ import artisynth.core.inverse.ConnectorForceRenderer;
 import artisynth.core.inverse.ForceTarget;
 import artisynth.core.inverse.ForceTargetTerm;
 import artisynth.core.inverse.MotionTargetTerm;
+import artisynth.core.inverse.TrackingController;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
@@ -102,9 +103,7 @@ public class OpenSimTest extends RootModel {
    MechModel myMech = new MechModel ();
    // All finite element meshes in the model
    RenderableComponentList<FemModel3d> myMeshes = null;
-   // Hashmap, that matches the name of the model marker to the corresponding
-   // experimental markers and their corresponding weightings
-   // Map<String,Entry<String,Double>> myMkrMap;
+   // Model and experimental marker names
    MarkerMapping myMap;
    // Experimental marker trajectories
    MarkerMotionData myMotion;
@@ -116,82 +115,6 @@ public class OpenSimTest extends RootModel {
    int myScale;
 
    // ------------------------------Nested Classes------------------------------
-   /**
-    * Renders the experimental COP from ForceData
-    * 
-    * @author Alexander Denk
-    */
-   public class COPRenderer implements IsRenderable {
-      Vector3d[] copPos = new Vector3d[2];
-      Vector3d[] grfPos = new Vector3d[4];
-      int scale;
-      int f0;
-      int f1;
-
-      @Override
-      public void prerender (RenderList list) {
-         // Get current positions of the left and right COP
-         f1 = (int)(mySystemTime / getMaxStepSize ());
-         // Execute the following only once per frame
-         if (f1 > f0) {
-            copPos[0] = myForces.getData (f1, "Right COP");
-            copPos[1] = myForces.getData (f1, "Left COP");
-            // start point right
-            FrameMarker mkrR = (FrameMarker)myMech.get ("cop_ref_1");
-            grfPos[0] = mkrR.getPosition ();
-            // end point right
-            Vector3d buf =
-               myForces.getData (f1, "Right GRF").scale (0.001 * scale);
-            grfPos[1] = grfPos[1].add (grfPos[0], buf);
-            // start point left
-            FrameMarker mkrL = (FrameMarker)myMech.get ("cop_ref_2");
-            grfPos[2] = mkrL.getPosition ();
-            // end point left
-            buf = myForces.getData (f1, "Left GRF").scale (0.001 * scale);
-            grfPos[3] = grfPos[3].add (grfPos[2], buf);
-         }
-         f0 = f1;
-         // TODO: handle simulation reset
-      }
-
-      @Override
-      public void render (Renderer renderer, int flags) {
-         renderer.setColor (Color.GRAY.brighter ());
-         renderer.drawSphere (copPos[0], 0.01 * scale);
-         renderer.drawSphere (copPos[1], 0.01 * scale);
-         // right grf arrow
-         if (getInputProbes ()
-            .get ("right ground reaction forces").isActive ()) {
-            renderer.drawArrow (grfPos[0], grfPos[1], 0.01 * scale, false);
-         }
-         // left grf arrow
-         if (getInputProbes ()
-            .get ("left ground reaction forces").isActive ()) {
-            renderer.drawArrow (grfPos[2], grfPos[3], 0.01 * scale, false);
-         }
-      }
-
-      @Override
-      public void updateBounds (Vector3d pmin, Vector3d pmax) {
-      }
-
-      @Override
-      public int getRenderHints () {
-         return 0;
-      }
-
-      public COPRenderer (int s) {
-         this.scale = s;
-         this.f0 = 0;
-         // Define initial drawing coordinates
-         this.copPos[0] = new Vector3d (0, 0, 0);
-         this.copPos[1] = new Vector3d (0, 0, 0);
-         this.grfPos[0] = new Vector3d (0, 0, 0);
-         this.grfPos[1] = new Vector3d (0, 0, 0);
-         this.grfPos[2] = new Vector3d (0, 0, 0);
-         this.grfPos[3] = new Vector3d (0, 0, 0);
-      }
-   }
 
    // -----------------------------Constructors---------------------------------
    public OpenSimTest () {
@@ -275,35 +198,6 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Sets the rendering properties of every body connector within the root
-    * model.
-    * 
-    * @param scale
-    * Unit scaling factor for the current model (m = 1, mm = 1000)
-    */
-   public void setConnectorRenderProps (int scale) {
-      List<PlanarConnector> con = new ArrayList<PlanarConnector> ();
-      myMech.bodyConnectors ().forEach (c -> {
-         con.add ((PlanarConnector)c);
-      });
-      List<ConnectorForceRenderer> rend =
-         new ArrayList<ConnectorForceRenderer> ();
-      RenderProps props = new RenderProps ();
-      props.setLineStyle (LineStyle.CYLINDER);
-      props.setLineRadius (25 * scale / 1000);
-      props.setLineColor (Color.GREEN);
-      con.forEach (c -> {
-         RenderProps.setSphericalPoints (c, 0.01 * scale, Color.CYAN);
-         RenderProps.setFaceStyle (c, FaceStyle.FRONT);
-         rend.add (new ConnectorForceRenderer (c));
-         int end = rend.size ();
-         rend.get (end - 1).setRenderProps (props);
-         rend.get (end - 1).setArrowSize (scale / 1000);
-         addMonitor (rend.get (end - 1));
-      });
-   }
-
-   /**
     * Sets the rendering properties of every collision response within the root
     * model.
     * 
@@ -318,7 +212,6 @@ public class OpenSimTest extends RootModel {
       coll.setDrawContactForces (true);
       coll.setDrawFrictionForces (true);
       coll.setContactForceLenScale (scale / 1000);
-      // coll.setDrawColorMap (ColorMapType.PENETRATION_DEPTH);
       RenderProps.setVisible (coll, true);
       RenderProps.setSolidArrowLines (coll, 0.01 * scale, Color.BLUE);
       RenderProps.setSphericalPoints (coll, 0.01 * scale, Color.CYAN);
@@ -335,19 +228,11 @@ public class OpenSimTest extends RootModel {
          RenderProps.setPointColor (m, Color.PINK);
       });
       // Access source and target points of the motion target controller
-      MotionTargetController controller =
-         (MotionTargetController)getControllers ().get (0);
+      TrackingController controller =
+         (TrackingController)getControllers ().get (0);
       controller.getTargetPoints ().forEach (c -> {
          RenderProps.setPointColor (c, Color.WHITE);
       });
-      // FrameMarker mkrL = (FrameMarker)myMech.get ("cop_ref_1");
-      // RenderProps
-      // .setSphericalPoints (
-      // mkrL, 0.01 * scale, Color.GRAY.darker ().darker ());
-      // FrameMarker mkrR = (FrameMarker)myMech.get ("cop_ref_2");
-      // RenderProps
-      // .setSphericalPoints (
-      // mkrR, 0.01 * scale, Color.GRAY.darker ().darker ());
    }
 
    /**
@@ -377,11 +262,6 @@ public class OpenSimTest extends RootModel {
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
    public void setRenderProps (CollisionManager coll, int scale) {
-      // Add a cop renderer to the list of renderables
-      COPRenderer copRenderer = new COPRenderer (scale);
-      getMainViewer ().addRenderable (copRenderer);
-      // Setup connector rendering
-      // setConnectorRenderProps (scale);
       // Setup contact rendering
       setContactRenderProps (coll, scale);
       // disable components coordinate systems rendering
@@ -474,8 +354,8 @@ public class OpenSimTest extends RootModel {
          // Append FEM info
          writeFEMInfo (output, myMeshes);
          // Append probes info
-         MotionTargetController controller =
-            (MotionTargetController)getControllers ().get ("Motion controller");
+         TrackingController controller =
+            (TrackingController)getControllers ().get ("Motion controller");
          writeProbesInfo (
             output, controller, myMotion, myMap, myForces, myMarkers);
          // Append contact info
@@ -488,64 +368,6 @@ public class OpenSimTest extends RootModel {
    }
 
    // --------------------------Private Instance Methods------------------------
-
-   /**
-    * Defines n ({@code list.size())} {@link NumericInputProbe}s for the
-    * specified bodies in {@code list} and fills it with the force data in
-    * {@code forces}. Hands the generated Probes to the
-    * {@link MotionTargetController}
-    * 
-    * @param motcon
-    * MotionTargetController
-    * @param list
-    * List of Components to apply forces to. Needs to implement the property
-    * {@code externalForce}
-    * @param forces
-    * {@link ForceTarget} object containing the experimental forces
-    */
-   private void addForceProbes (
-      MotionTargetController motcon, ArrayList<FrameMarker> list,
-      ForceData forces) {
-      // Connect experimental data to the input probes generated by the
-      // controller.
-      if (list != null) {
-         NumericInputProbe leftForces = new NumericInputProbe ();
-         leftForces.setModel (myMech);
-         leftForces.setName ("left ground reaction forces");
-         NumericInputProbe rightForces = new NumericInputProbe ();
-         rightForces.setModel (myMech);
-         rightForces.setName ("right ground reaction forces");
-         // Calculate the duration in seconds from the number of frames
-         double duration =
-            forces.getFrameTime (forces.numFrames () - 1)
-            - forces.getFrameTime (0);
-         leftForces.setStartStopTimes (0.0, duration);
-         rightForces.setStartStopTimes (0.0, duration);
-         Property[] props = new Property[1];
-         props[0] = list.get (0).getProperty ("externalForce");
-         leftForces.setInputProperties (props);
-         props[0] = list.get (1).getProperty ("externalForce");
-         rightForces.setInputProperties (props);
-         for (int i = 0; i < forces.numFrames (); i++) {
-            VectorNd force = new VectorNd (3);
-            double time = forces.getFrameTime (i);
-            force.add (0, forces.getData (i, "Right GRF").x);
-            force.add (1, forces.getData (i, "Right GRF").y);
-            force.add (2, forces.getData (i, "Right GRF").z);
-            rightForces.addData (time, force);
-            force.set (0, forces.getData (i, "Left GRF").x);
-            force.set (1, forces.getData (i, "Left GRF").y);
-            force.set (2, forces.getData (i, "Left GRF").z);
-            leftForces.addData (time, force);
-         }
-         addInputProbe (rightForces);
-         motcon.addInputProbe (rightForces);
-         rightForces.setActive (false);
-         addInputProbe (leftForces);
-         motcon.addInputProbe (leftForces);
-         leftForces.setActive (false);
-      }
-   }
 
    /**
     * Creates an output probe and fills a control panel for each DOF of each
@@ -635,38 +457,12 @@ public class OpenSimTest extends RootModel {
       addControlPanel (panel);
    }
 
-   @Deprecated
-   /**
-    * Adds the data stored in {@code forces} to the input probes of the
-    * MotionTargetController, if available.
-    * 
-    * @param forces
-    * Experimental forces
-    */
-   private void addProbesToForceTargets (ForceData forces) {
-      // Get target forces probe to fill with data
-      NumericInputProbe expForces =
-         (NumericInputProbe)getInputProbes ().get ("target forces");
-      if (expForces != null) {
-         for (int i = 0; i < forces.numFrames (); i++) {
-            VectorNd force = new VectorNd (2);
-            force.add (0, forces.getData (i, "Right GRF").y);
-            force.add (1, forces.getData (i, "Left GRF").y);
-            // force.add (2, forces.getData (i, "Right GRF").y);
-            // force.add (3, forces.getData (i, "Left GRF").y);
-            double time = forces.getFrameTime (i);
-            expForces.addData (time, force);
-         }
-         expForces.setActive (true);
-      }
-   }
-
    /**
     * Adds the data stored in {@code motion} to the input probes of the
-    * MotionTargetController, if available.
+    * TrackingController, if available.
     * 
     * @param controller
-    * MotionTargetController
+    * TrackingController
     * @param map
     * links the model marker names to the experimental marker names and their
     * weights
@@ -674,7 +470,7 @@ public class OpenSimTest extends RootModel {
     * Experimental marker trajectories
     */
    private void addProbesToMotionTargets (
-      MotionTargetController controller, MarkerMapping map,
+      TrackingController controller, MarkerMapping map,
       MarkerMotionData motion) {
       // Get target positions probe to fill with data
       NumericInputProbe expMotion =
@@ -766,7 +562,7 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Defines a {@link MotionTargetController} object, that calculates muscle
+    * Defines a {@link TrackingController} object, that calculates muscle
     * activations based on trajectories. The motion target controller is a self
     * written class, that controls the movement of target markers (based on the
     * experimental trajectories and forces) for the model markers to follow.
@@ -785,14 +581,11 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     */
    private void defineControllerAndProps (
-      ForceData forces, MarkerMotionData motion, MarkerMapping map, String name,
-      int scale)
+      MarkerMotionData motion, MarkerMapping map, int scale)
       throws IOException {
       // Initialize controller
-      MotionTargetController motcon =
-         new MotionTargetController (myMech, "Motion controller", name);
-      motcon.addForceData (forces);
-      motcon.addMotionData (motion, map);
+      TrackingController motcon =
+         new TrackingController (myMech, "Motion controller");
       motcon.addL2RegularizationTerm (1);
       // Calculate the duration in seconds from the number of frames
       double duration =
@@ -805,93 +598,11 @@ public class OpenSimTest extends RootModel {
       motcon.setDebug (false);
       // Define motion targets
       defineMotionTargets (motcon, map, scale);
-      // Define force targets, currently legacy code
-      // defineForceTargets (motcon, scale);
       // Add controller before populating the input probes
       motcon.createProbesAndPanel (this);
       addController (motcon);
       // Populate probes of motion targets
       addProbesToMotionTargets (motcon, map, motion);
-      // Populate probes of force targets, currently legacy code
-      // addProbesToForceTargets (forces);
-
-      //Define FrameMarkers for the force input probes
-      ArrayList<FrameMarker> list = new ArrayList<FrameMarker> ();
-      FrameMarker leftCOP = new FrameMarker ("cop_ref_1");
-      leftCOP.setFrame (myBodies.get ("calcn_l"));
-      myMech.add (leftCOP);
-      list.add (leftCOP);
-      motcon.addCOPReference (leftCOP);
-      FrameMarker rightCOP = new FrameMarker ("cop_ref_2");
-      rightCOP.setFrame (myBodies.get ("calcn_r"));
-      myMech.add (rightCOP);
-      list.add (rightCOP);
-      motcon.addCOPReference (rightCOP);
-      addForceProbes (motcon, list, myForces);
-   }
-
-   @Deprecated
-   /**
-    * Defines ForceTargets of the {@link ForceTargetTerm} of the
-    * {@link MotionTargetController}.
-    * 
-    * @param controller
-    * MotionTargetController
-    * @param map
-    * links the model marker names to the experimental marker names and their
-    * weights
-    * @param scale
-    * Unit scale factor for the current model (m = 1, mm = 1000)
-    */
-   private void defineForceTargets (
-      MotionTargetController controller, int scale) {
-      // Define planar connectors for each rigid body with ground contact
-      RigidBody calcnR = myBodies.get ("calcn_r");
-      RigidBody calcnL = myBodies.get ("calcn_l");
-      RigidBody toesR = myBodies.get ("toes_r");
-      RigidBody toesL = myBodies.get ("toes_l");
-      // Define transform of the connector to world coordinates
-      RigidTransform3d rt = new RigidTransform3d (0, 0, 0);
-      // Rotate by -90° around the x axis to align the connector from the xy
-      // plane to the xz plane while facing upwards
-      rt.R.mulAxisAngle (1, 0, 0, Math.toRadians (-90));
-      // Define the distance offset
-      Vector3d dOff = new Vector3d (0.0, 0.0, 0.0);
-      // Setup the calcn planar connectors
-      PlanarConnector conCalcnR = new PlanarConnector (calcnR, dOff, rt);
-      conCalcnR.setPlaneSize (3 * scale);
-      conCalcnR.setName ("conCalcnR");
-      conCalcnR.setUnilateral (true);
-      PlanarConnector conCalcnL = new PlanarConnector (calcnL, dOff, rt);
-      conCalcnL.setPlaneSize (3 * scale);
-      conCalcnL.setName ("conCalcnL");
-      conCalcnL.setUnilateral (true);
-      // Setup the toes planar connectors
-      PlanarConnector conToesR = new PlanarConnector (toesR, dOff, rt);
-      conToesR.setPlaneSize (3 * scale);
-      conToesR.setName ("conToesR");
-      conToesR.setUnilateral (true);
-      PlanarConnector conToesL = new PlanarConnector (toesL, dOff, rt);
-      conToesL.setPlaneSize (3 * scale);
-      conToesL.setName ("conToesL");
-      conToesL.setUnilateral (true);
-      // Add all connectors to the model
-      myMech.addBodyConnector (conCalcnR);
-      myMech.addBodyConnector (conCalcnL);
-      myMech.addBodyConnector (conToesR);
-      myMech.addBodyConnector (conToesL);
-      // Add force targets to monitor the forces in those connectors, where
-      // the external forces are applied
-      ForceTargetTerm forceTerm = controller.addForceTargetTerm ();
-      // Define two dummy force targets
-      ForceTarget ftR = forceTerm.addForceTarget (conCalcnR);
-      ftR.setName ("ft_r");
-      ftR.setTargetLambda (new VectorNd (1));
-      ftR.setArrowSize (0.1);
-      ForceTarget ftL = forceTerm.addForceTarget (conCalcnL);
-      ftL.setName ("ft_l");
-      ftL.setTargetLambda (new VectorNd (1));
-      ftL.setArrowSize (0.1);
    }
 
    /**
@@ -914,7 +625,7 @@ public class OpenSimTest extends RootModel {
       // from file
       myMap = getMapFromFile (name);
       // Generate and populate motion and force targets
-      defineControllerAndProps (myForces, myMotion, myMap, name, scale);
+      defineControllerAndProps (myMotion, myMap, scale);
       // Define output probes for each joint angle
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
@@ -925,10 +636,10 @@ public class OpenSimTest extends RootModel {
 
    /**
     * Defines MotionTargets of the {@link MotionTargetTerm} of the
-    * {@link MotionTargetController}.
+    * {@link TrackingController}.
     * 
     * @param controller
-    * MotionTargetController
+    * TrackingController
     * @param map
     * links the model marker names to the experimental marker names and their
     * weights
@@ -936,7 +647,7 @@ public class OpenSimTest extends RootModel {
     * Unit scale factor for the current model (m = 1, mm = 1000)
     */
    private void defineMotionTargets (
-      MotionTargetController controller, MarkerMapping map, int scale) {
+      TrackingController controller, MarkerMapping map, int scale) {
       // Add muscles to compute the excitations
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
@@ -1628,13 +1339,7 @@ public class OpenSimTest extends RootModel {
       output
          .append ("JOINTS\n").append ("Number of joints: ")
          .append (joints.size ()).append ("\n");
-      // Access all joints to get their info.
-      // String format = "%d DOF [%.1f, %.1f]stop time: %.3f, frame rate:
-      // %.2f%n"
-      // String format = "%-16s%-16s%-16s%-6s", "Model marker", "Exp. marker",
-      // "Attachment", "Weight"
       String format = "%d DOF %-20s%-14s\tType: %-6s%n";
-      // "%-16s%-16s%-16s%.1f%n"
 
       joints.forEach (jt -> {
          output
@@ -1794,7 +1499,7 @@ public class OpenSimTest extends RootModel {
     * @param output
     * {@link StringBuilder} string
     * @param controller
-    * current {@link MotionTargetController} object
+    * current {@link TrackingController} object
     * @param motion
     * {@link MarkerMotionData} object containing all exp trajectories
     * @param map
@@ -1806,7 +1511,7 @@ public class OpenSimTest extends RootModel {
     * list of {@link FrameMarker} objects
     */
    private void writeProbesInfo (
-      StringBuilder output, MotionTargetController controller,
+      StringBuilder output, TrackingController controller,
       MarkerMotionData motion, MarkerMapping map, ForceData forces,
       RenderableComponentList<FrameMarker> marker) {
       output
@@ -1815,7 +1520,6 @@ public class OpenSimTest extends RootModel {
             "%%------------------------------------------------------------%%\n")
          .append ("\nCONTROLLER INFORMATION\n").append ("Use motion targets : ")
          .append (controller.getMotionTargetTerm ().isEnabled ()).append ("\n")
-         .append ("Use force targets: ").append (controller.hasForceTargets ())
          .append ("\n").append ("Use regularization: ")
          .append (controller.getL2RegularizationTerm ().isEnabled ())
          .append ("\n").append ("Use KKT Factorization: ")

@@ -87,9 +87,10 @@ public class ContactMonitor extends MonitorBase {
       // TODO: get the actual penetration depth of each contact event.
       writeContactToFile (t0);
    }
-   
+
    /**
     * Queries whether full report mode is used by this {@link ContactMonitor}
+    * 
     * @return
     */
    public boolean useFullReport () {

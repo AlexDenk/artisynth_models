@@ -56,7 +56,7 @@ public class ContactMonitor extends MonitorBase {
 
    // ----------------------------Nested Classes ------------------------------
 
-   public static class CustomContactForce extends ContactForceBehavior {
+   public class CustomContactForce extends ContactForceBehavior {
 
       double myStiffness;
       double myDamping;
@@ -78,6 +78,12 @@ public class ContactMonitor extends MonitorBase {
          fres[0] = dist * myStiffness; // contact force
          fres[1] = 1 / myStiffness; // compliance as inverse of stiffness
          fres[2] = myDamping; // damping
+         // collisionsAll.find
+         
+         List<CollisionBehavior> list = collisionsAll
+            .stream ().filter (s -> s == this.myPropHost)
+            .collect (Collectors.toList ());
+         // this.myPropHost
 
       }
    }
@@ -106,7 +112,7 @@ public class ContactMonitor extends MonitorBase {
       // Needs to be changed back to collisionsActive after testing
       collisionsAll.forEach (cr -> {
          if (cr.inContact ()) {
-            
+
             // now unnecessary
             List<ContactData> cdata = cr.getContactData ();
             Vector3d force = calculateContactForces (cdata);
@@ -129,8 +135,7 @@ public class ContactMonitor extends MonitorBase {
 
                // get new contact forces...
             }
-            
-            
+
          }
       });
 

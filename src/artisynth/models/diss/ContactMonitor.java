@@ -82,9 +82,9 @@ public class ContactMonitor extends MonitorBase {
             collisionsAll
                .stream ().filter (s -> s == this.myPropHost)
                .collect (Collectors.toList ());
-         
-         assert host.size () == 1 : "Error: ";
-         
+         assert host.size () == 1 : "Error: current response computation fits"
+         + " to more than 1 collision response";
+
          collisionsActive.forEach (c -> {
             if (c.equals (host.get (0))) {
                // do update and stuff!

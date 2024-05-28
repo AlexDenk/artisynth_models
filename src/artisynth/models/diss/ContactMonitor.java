@@ -57,7 +57,6 @@ public class ContactMonitor extends MonitorBase {
    // ----------------------------Nested Classes ------------------------------
 
    public class CustomContactForce extends ContactForceBehavior {
-
       double myStiffness;
       double myDamping;
 
@@ -78,12 +77,19 @@ public class ContactMonitor extends MonitorBase {
          fres[0] = dist * myStiffness; // contact force
          fres[1] = 1 / myStiffness; // compliance as inverse of stiffness
          fres[2] = myDamping; // damping
-         // collisionsAll.find
+
+         List<CollisionResponse> host =
+            collisionsAll
+               .stream ().filter (s -> s == this.myPropHost)
+               .collect (Collectors.toList ());
          
-         List<CollisionBehavior> list = collisionsAll
-            .stream ().filter (s -> s == this.myPropHost)
-            .collect (Collectors.toList ());
-         // this.myPropHost
+         assert host.size () == 1 : "Error: ";
+         
+         collisionsActive.forEach (c -> {
+            if (c.equals (host.get (0))) {
+               // do update and stuff!
+            }
+         });
 
       }
    }

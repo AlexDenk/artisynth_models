@@ -33898,7 +33898,7 @@ GLOBAL
 Contact Method: DEFAULT
 Contact Region Detection Algorithm (Collision Type): TRI_INTERSECTION
 Reduce overconstrained contact: true
-Number of contact interfaces: 15
+Number of contact interfaces: 19
 
 INDIVIDUAL
 Contact Interface: Rigid-Rigid
@@ -34005,4 +34005,32 @@ Body a: torso	Body or Group B: pelvis
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 42.163
+
+Contact Interface: ground-bodyset#calcn_r
+Bilateral vertex contact: false
+Body a: ground	Body or Group B: calcn_r
+Penetration Tolerance: 0.001
+Contact compliance: 1.000
+Contact damping: 17.041
+
+Contact Interface: ground-bodyset#calcn_l
+Bilateral vertex contact: false
+Body a: ground	Body or Group B: calcn_l
+Penetration Tolerance: 0.001
+Contact compliance: 1.000
+Contact damping: 17.041
+
+Contact Interface: ground-bodyset#toes_r
+Bilateral vertex contact: false
+Body a: ground	Body or Group B: toes_r
+Penetration Tolerance: 0.001
+Contact compliance: 1.000
+Contact damping: 17.041
+
+Contact Interface: ground-bodyset#toes_l
+Bilateral vertex contact: false
+Body a: ground	Body or Group B: toes_l
+Penetration Tolerance: 0.001
+Contact compliance: 1.000
+Contact damping: 17.041
 

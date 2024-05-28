@@ -22,9 +22,6 @@ import artisynth.core.femmodels.FemModel.Ranging;
 import artisynth.core.femmodels.FemModel.SurfaceRender;
 import artisynth.core.femmodels.FemModel3d;
 import artisynth.core.gui.ControlPanel;
-import artisynth.core.inverse.ConnectorForceRenderer;
-import artisynth.core.inverse.ForceTarget;
-import artisynth.core.inverse.ForceTargetTerm;
 import artisynth.core.inverse.MotionTargetTerm;
 import artisynth.core.inverse.TrackingController;
 import artisynth.core.materials.LinearMaterial;
@@ -40,12 +37,12 @@ import artisynth.core.mechmodels.MechSystemSolver.Integrator;
 import artisynth.core.mechmodels.MechSystemSolver.PosStabilization;
 import artisynth.core.mechmodels.MeshComponentList;
 import artisynth.core.mechmodels.MultiPointMuscle;
-import artisynth.core.mechmodels.PlanarConnector;
 import artisynth.core.mechmodels.PointList;
 import artisynth.core.mechmodels.RigidBody;
 import artisynth.core.modelbase.ModelComponent;
 import artisynth.core.modelbase.RenderableComponentList;
 import artisynth.core.opensim.OpenSimParser;
+import artisynth.core.opensim.customjoint.OpenSimCustomJoint;
 import artisynth.core.probes.MarkerMotionData;
 import artisynth.core.probes.NumericInputProbe;
 import artisynth.core.probes.NumericOutputProbe;
@@ -53,26 +50,21 @@ import artisynth.core.probes.TRCReader;
 import artisynth.core.renderables.ColorBar;
 import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
+
 import artisynth.models.diss.ContactMonitor;
 import artisynth.models.diss.MOTReader;
 import artisynth.models.diss.MOTReader.ForceData;
 import artisynth.models.diss.MarkerMapping;
-import artisynth.models.diss.MotionTargetController;
-
+import artisynth.models.diss.ContactMonitor.CustomContactForce;
 import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
 import maspack.matrix.AxisAlignedRotation;
 import maspack.matrix.Point3d;
-import maspack.matrix.RigidTransform3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
-import maspack.properties.Property;
-import maspack.render.IsRenderable;
 import maspack.render.RenderList;
 import maspack.render.RenderProps;
-import maspack.render.Renderer;
-import maspack.render.Renderer.FaceStyle;
 import maspack.render.Renderer.LineStyle;
 import maspack.render.Renderer.Shading;
 import maspack.render.Viewer.RotationMode;
@@ -153,29 +145,18 @@ public class OpenSimTest extends RootModel {
       initializeOsim (myName, myScale);
       // Import FE Meshes
       // initializeFEM();
+      // Define input and output probes
+      defineIOProbes (myName, myScale);
       // Retrieve the collision manager to define contact properties
       CollisionManager collMan = myMech.getCollisionManager ();
       collMan.setName ("Collision manager");
       // Set individual contact properties and initialize the contact monitor
       setContactProps (collMan);
-      // Define input and output probes
-      defineIOProbes (myName, myScale);
       // Set render properties
       setRenderProps (collMan, myScale);
       // Write the generated Input parameters to a file within the working
       // directory
       writeInputToFile (myName);
-   }
-
-   @Override
-   public void prerender (RenderList list) {
-      super.prerender (list);
-      // Synchronize color bar/values in case they are changed. Do this *after*
-      // super.prerender(), in case values are changed there.
-      // ColorBar cbar = (ColorBar)(renderables().get("colorBar"));
-      // cbar.setColorMap(femur.getColorMap());
-      // DoubleInterval range = femur.getStressPlotRange();
-      // cbar.updateLabels(range.getLowerBound(), range.getUpperBound());
    }
 
    /**
@@ -274,29 +255,6 @@ public class OpenSimTest extends RootModel {
       // setSurfaceRenderProps ();
       // Viewer properties
       setViewerProps ();
-   }
-
-   /**
-    * Sets the render properties of the colour bars within the root model.
-    */
-   public void setSurfaceRenderProps () {
-      ColorBar cbar = new ColorBar (null);
-      // Stress surface rendering
-      myMeshes.forEach (mesh -> {
-         mesh.setSurfaceRendering (SurfaceRender.Stress);
-         mesh.setStressPlotRanging (Ranging.Auto);
-      });
-      // Set the properties of the corresponding colourbar.
-      // Name of the colourbar.
-      cbar.setName ("colorBar");
-      // Set the display to a float number with 2 decimal places.
-      cbar.setNumberFormat ("%.2f");
-      // Initialize the colourbar with 10 ticks.
-      cbar.populateLabels (0.0, 0.1, 10);
-      // Define, where the colour bar is to be shown (x and y position and also
-      // width and height.
-      cbar.setLocation (-100, 0.1, 20, 0.8);
-      addRenderable (cbar);
    }
 
    /**
@@ -505,6 +463,8 @@ public class OpenSimTest extends RootModel {
     * object for the compliant contact between {@code bodyA} and {@code bodyB},
     * based on the given parameters {@code comp} and {@code damp}.
     * 
+    * @param monitor
+    * 
     * @param bodyA
     * @param bodyB
     * @param comp
@@ -513,7 +473,8 @@ public class OpenSimTest extends RootModel {
     * Damping coefficient
     */
    private void createCollision (
-      RigidBody bodyA, RigidBody bodyB, double comp, double damp) {
+      ContactMonitor monitor, RigidBody bodyA, RigidBody bodyB, double comp,
+      double damp) {
       // Add a collision behavior for each connection.
       CollisionBehavior behavior;
       behavior = myMech.setCollisionBehavior (bodyA, bodyB, true);
@@ -522,6 +483,7 @@ public class OpenSimTest extends RootModel {
       behavior.setDamping (damp);
       // Additional method to reduce overconstrained contact.
       behavior.setBilateralVertexContact (false);
+      behavior.setForceBehavior (monitor.new CustomContactForce (comp, damp));
       // Add a collision response for the contact history
       myMech.setCollisionResponse (bodyA, bodyB);
    }
@@ -1009,47 +971,6 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Initializes the FEM Meshes
-    * 
-    * @throws IOException
-    */
-   private void initializeFEM () throws IOException {
-      // Femur
-      File femurInput =
-         ArtisynthPath.getSrcRelativeFile (this, "Meshes/C01L_Femur.obj");
-      PolygonalMesh femurMesh = new PolygonalMesh ();
-      FemModel3d femur = new FemModel3d ("femur");
-      femurMesh.read (femurInput);
-      FemFactory.createFromMesh (femur, femurMesh, 1.2);
-      femur.setDensity (2E-6);
-      femur.setMaterial (new LinearMaterial (5000, 0.35));
-      femur.setParticleDamping (0.1);
-      femur.setStiffnessDamping (0.1);
-      myMech.addModel (femur);
-
-      // Tibia and Fibula
-      File tibfibInput =
-         ArtisynthPath.getSrcRelativeFile (this, "Meshes/C01L_TibiaFibula.obj");
-      PolygonalMesh tibfibMesh = new PolygonalMesh ();
-      FemModel3d tibfib = new FemModel3d ("tibfib");
-      tibfibMesh.read (tibfibInput);
-      FemFactory.createFromMesh (tibfib, tibfibMesh, 1.2);
-      tibfib.setDensity (2E-6);
-      tibfib.setMaterial (new LinearMaterial (5000, 0.35));
-      tibfib.setParticleDamping (0.1);
-      tibfib.setStiffnessDamping (0.1);
-      myMech.addModel (tibfib);
-
-      // not used as long as the Ansys reader is not called
-      // public String inputNodes = PathFinder.
-      // getSourceRelativePath (this,"Input Files/testNodes.node" );
-      // public String inputElems =PathFinder.
-      // getSourceRelativePath(this,"Input Files/testElems.elem" );
-      // Generate all FEM related geometries.
-      // AnsysReader.read (femur,inputNodes,inputElems,2E-6,null,0);
-   }
-
-   /**
     * Imports an OpenSim model from the current working directory, defines joint
     * constraints and stores important model components in variables.
     * 
@@ -1182,6 +1103,9 @@ public class OpenSimTest extends RootModel {
    private void setContactProps (CollisionManager coll) throws IOException {
       // Enable reduce overconstrained contact.
       coll.setReduceConstraints (true);
+      // Initialize the contact monitor to handle all individual collision
+      // responses
+      ContactMonitor contMonitor = new ContactMonitor (myName);
       // Define compliant contact per joint in the OpenSim Model
       myJoints.forEach (jt -> {
          if (jt.getName ().contains ("pelvis")) {
@@ -1195,30 +1119,29 @@ public class OpenSimTest extends RootModel {
          double mass = bodyA.getMass () + bodyB.getMass ();
          double damp = 2 * 1 * Math.sqrt (1 / comp * mass);
          // Set collision behavior and response
-         createCollision (bodyA, bodyB, comp, damp);
+         createCollision (contMonitor, bodyA, bodyB, comp, damp);
       });
       // Define Ground Contact
-      // TODO: Ground contact auskonvergieren
-      /*
-       * RigidBody ground = (RigidBody)myMech.get ("ground"); RigidBody calcnR =
-       * myBodies.get ("calcn_r"); RigidBody calcnL = myBodies.get ("calcn_l");
-       * RigidBody toesR = myBodies.get ("toes_r"); RigidBody toesL =
-       * myBodies.get ("toes_l"); // Calculate compliant contact for the body
-       * weight with a softer // contact stiffness double comp = 1; double mass
-       * = myMech.getActiveMass (); double damp = 2 * 1 * Math.sqrt (1 / comp *
-       * mass); createCollision (ground, calcnR, comp, damp); createCollision
-       * (ground, calcnL, comp, damp); createCollision (ground, toesR, comp,
-       * damp); createCollision (ground, toesL, comp, damp);
-       */
-      // Initialize the contact monitor to handle all individual collision
-      // responses
-      ContactMonitor contMonitor =
-         new ContactMonitor (coll.responses (), myName);
+      RigidBody ground = (RigidBody)myMech.get ("ground");
+      RigidBody calcnR = myBodies.get ("calcn_r");
+      RigidBody calcnL = myBodies.get ("calcn_l");
+      RigidBody toesR = myBodies.get ("toes_r");
+      RigidBody toesL = myBodies.get ("toes_l");
+      // Calculate compliant contact for the body weight with a softer
+      // contact stiffness
+      double comp = 1;
+      double mass = myMech.getActiveMass ();
+      double damp = 2 * 1 * Math.sqrt (1 / comp * mass);
+      createCollision (contMonitor, ground, calcnR, comp, damp);
+      createCollision (contMonitor, ground, calcnL, comp, damp);
+      createCollision (contMonitor, ground, toesR, comp, damp);
+      createCollision (contMonitor, ground, toesL, comp, damp);
+
       contMonitor.setName ("Contact monitor");
-      // Enable FullReportMode
-      contMonitor.setUseFullReport (true);
+      contMonitor.addCollisionBehaviors (coll.behaviors ());
+      contMonitor.addCollisionResponses (coll.responses ());
+      contMonitor.addForceData (myForces);
       addMonitor (contMonitor);
-      // TODO: Ground collision mesh
    }
 
    /**

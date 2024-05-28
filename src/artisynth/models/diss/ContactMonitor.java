@@ -3,15 +3,23 @@ package artisynth.models.diss;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import artisynth.core.materials.ContactForceBehavior;
+import artisynth.core.mechmodels.Collidable;
+import artisynth.core.mechmodels.CollisionBehavior;
+import artisynth.core.mechmodels.CollisionBehaviorList;
 import artisynth.core.mechmodels.CollisionResponse;
 import artisynth.core.mechmodels.CollisionResponseList;
 import artisynth.core.mechmodels.ContactData;
+import artisynth.core.modelbase.ContactPoint;
 import artisynth.core.modelbase.MonitorBase;
 import artisynth.core.util.ArtisynthPath;
+import artisynth.models.diss.MOTReader.ForceData;
 import artisynth.models.diss.Tests.*;
+import maspack.matrix.Vector3d;
 
 /**
  * The contact monitor acts as a monitor (see artisynth manual for further
@@ -30,81 +38,189 @@ public class ContactMonitor extends MonitorBase {
    String msgName = null;
    // Path to the file, where the contact history is written to
    String msgPath = null;
+   // Experimental data
+   ForceData myForces;
    // Writer object, that writes data to file
    PrintWriter writer;
    // Writer variable, that tracks, whether the writer was active before
    boolean isActive;
-   // A list of all available collision pairs
-   List<CollisionResponse> collResp = new ArrayList<CollisionResponse> ();
-   // A list of all collision pairs, that are actively monitored
-   List<CollisionResponse> activeResp = new ArrayList<CollisionResponse> ();
-   // Checks if all available collision pairs are actively monitored
-   boolean useFullReport;
+   // List of all collision behaviors
+   CollisionBehaviorList behaviors;
+   // List of all available collision responses
+   CollisionResponseList collisionsAll;
+   // List of all converging collision responses
+   CollisionResponseList collisionsActive = new CollisionResponseList ();
+   // Map to match behaviors with responses
+   HashMap<CollisionResponse,CollisionBehavior> collisionMap =
+      new HashMap<CollisionResponse,CollisionBehavior> ();
+
    // ----------------------------Nested Classes ------------------------------
 
+   public static class CustomContactForce extends ContactForceBehavior {
+
+      double myStiffness;
+      double myDamping;
+
+      public CustomContactForce () {
+         new CustomContactForce (0.0, 0.0);
+      }
+
+      public CustomContactForce (double comp, double damping) {
+         this.myStiffness = 1 / comp;
+         this.myDamping = damping;
+      }
+
+      @Override
+      public void computeResponse (
+         double[] fres, double dist, ContactPoint cpnt0, ContactPoint cpnt1,
+         Vector3d normal, double contactArea, int flags) {
+
+         fres[0] = dist * myStiffness; // contact force
+         fres[1] = 1 / myStiffness; // compliance as inverse of stiffness
+         fres[2] = myDamping; // damping
+
+      }
+   }
+
    // -----------------------------Constructors--------------------------------
-   public ContactMonitor (CollisionResponseList resp, String name)
-   throws IOException {
+   public ContactMonitor (String name) throws IOException {
       super ();
       initializwWriter (name);
-      // Add each item in the CollisionResponseList to a separate list, since
-      // there are iteration problems with the CollisionResponseList class
-      resp.forEach (r -> {
-         collResp.add (r);
-      });
-
    }
 
    // ----------------------------Instance Methods-----------------------------
    @Override
    public void initialize (double t0) {
+      closeWriter ();
+      addActiveResponses ();
+      try {
+         createCollisionMap ();
+      }
+      catch (Exception e) {
+         e.printStackTrace ();
+      }
       super.initialize (t0);
-      // Close writer, if it was priorly active
+   }
+
+   public void apply (double t0, double t1) {
+      // Needs to be changed back to collisionsActive after testing
+      collisionsAll.forEach (cr -> {
+         if (cr.inContact ()) {
+            
+            // now unnecessary
+            List<ContactData> cdata = cr.getContactData ();
+            Vector3d force = calculateContactForces (cdata);
+            int frame = myForces.getFrame (t1);
+
+            // Which side are we at?
+            String side;
+            if (cr.getName ().contains ("_r")) {
+               side = "Right";
+            }
+            else {
+               side = "Left";
+            }
+            if (!force
+               .epsilonEquals (myForces.getData (frame, side + " GRF"), 10)) {
+               // percentage based tolerance
+               CollisionBehavior behavior = collisionMap.get (cr);
+               double comp = behavior.getCompliance () * 1.5; // What update?
+               behavior.setCompliance (comp);
+
+               // get new contact forces...
+            }
+            
+            
+         }
+      });
+
+      writeContactToFile (t0);
+   }
+
+   public void addForceData (ForceData forces) {
+      this.myForces = forces;
+   }
+
+   public void addCollisionBehaviors (CollisionBehaviorList behaviors) {
+      this.behaviors = behaviors;
+   }
+
+   public void addCollisionResponses (CollisionResponseList responses) {
+      this.collisionsAll = responses;
+   }
+
+   // ------------------------Private Instance Methods-------------------------
+
+   /**
+    * Adds all ground related contact responses to the list of mutable contact
+    * interfaces.
+    */
+   private void addActiveResponses () {
+      // Search for all responses regarding toes and calcanei
+      for (CollisionResponse cr : collisionsAll) {
+         if (cr.getName ().contains ("ground")
+         && cr.getName ().contains ("toes")) {
+            collisionsActive.add (cr);
+         }
+         else if (cr.getName ().contains ("ground")
+         && cr.getName ().contains ("calcn")) {
+            collisionsActive.add (cr);
+         }
+      }
+   }
+
+   /**
+    * Sums up all found contact forces in the contact data
+    * 
+    * @param cdata
+    * {@link ContactData} list
+    */
+   private Vector3d calculateContactForces (List<ContactData> cdata) {
+      Vector3d sum = new Vector3d (0, 0, 0);
+      cdata.forEach (cd -> {
+         sum.add (cd.getContactForce ());
+      });
+      return sum;
+   }
+
+   /**
+    * Closes the PrintWriter if it was priorly active.
+    */
+   private void closeWriter () {
       if (isActive) {
          writer.close ();
       }
       isActive = true;
-      // Check for the report mode
-      if (!useFullReport) {
-         // Search for all responses regarding toes and calcanei
-         collResp.forEach (cr -> {
-            if (cr.getName ().contains ("ground")
-            && cr.getName ().contains ("toes")) {
-               activeResp.add (cr);
-            }
-            else if (cr.getName ().contains ("ground")
-            && cr.getName ().contains ("calcn")) {
-               activeResp.add (cr);
-            }
-         });
-      }
-      else {
-         activeResp = collResp;
-      }
-   }
-
-   public void apply (double t0, double t1) {
-      // TODO: get the actual penetration depth of each contact event.
-      writeContactToFile (t0);
-   }
-   
-   /**
-    * Queries whether full report mode is used by this {@link ContactMonitor}
-    * @return
-    */
-   public boolean useFullReport () {
-      return useFullReport;
    }
 
    /**
-    * Enables full report if set to true. If full report is desired, then the
-    * contact info of all collision behaviors is written to file. If unused,
-    * only the ground contact will be written to file.
+    * Filters and matches the collision responses and behaviors, that are
+    * referring to the same contact interface by comparing the collision
+    * components of both objects.
     * 
-    * @param b
+    * @throws Exception
+    * if no shared {@link Collidable}s are found
+    * 
     */
-   public void setUseFullReport (boolean b) {
-      useFullReport = b;
+   private void createCollisionMap () throws Exception {
+      for (CollisionResponse response : collisionsAll) {
+         Collidable bodyA = response.getCollidable (0);
+         Collidable bodyB = response.getCollidable (1);
+
+         List<CollisionBehavior> match =
+            behaviors
+               .stream ().filter (c -> c.getCollidable (0) == bodyA)
+               .filter (c -> c.getCollidable (1) == bodyB)
+               .collect (Collectors.toList ());
+
+         if (match != null && match.size () == 1) {
+            collisionMap.put (response, match.get (0));
+         }
+         else {
+            throw new Exception (
+               "Error: behavior and response collidables are inconsistent.");
+         }
+      }
    }
 
    /**
@@ -114,47 +230,44 @@ public class ContactMonitor extends MonitorBase {
     */
    private void writeContactToFile (double t0) {
       StringBuilder contactEvents = new StringBuilder ();
-      contactEvents
-         .append (
-            System.lineSeparator () + "DETECT CONTACT EVENTS"
-            + System.lineSeparator ());
-      activeResp.forEach (cr -> {
+      contactEvents.append ("\nDETECT CONTACT EVENTS\n");
+
+      collisionsAll.forEach (cr -> {
+
          contactEvents
-            .append (
-               System.lineSeparator () + "COLLISION INTERFACE: " + cr.getName ()
-               + System.lineSeparator ());
+            .append ("\nCOLLISION INTERFACE: ").append (cr.getName ())
+            .append ("\n");
+
          if (cr.inContact ()) {
             List<ContactData> cdata = cr.getContactData ();
             if (cdata.size () > 0) {
                contactEvents
-                  .append (
-                     "FOUND " + cdata.size () + " CONTACT EVENTS."
-                     + System.lineSeparator ());
+                  .append ("FOUND ").append (cdata.size ())
+                  .append (" CONTACT EVENTS.\n");
                cdata.forEach (cd -> {
                   String row =
                      String
                         .format (
                            "%-20s%-6s", "POSITION",
                            cd.getPosition0 ().toString ("%.3f"));
-                  contactEvents.append (row + System.lineSeparator ());
+                  contactEvents.append (row).append ("\n");
                   row =
                      String
                         .format (
                            "%-20s%-6s", "CONTACT FORCE (N)",
                            cd.getContactForce ().toString ("%.3f"));
-                  contactEvents.append (row + System.lineSeparator ());
+                  contactEvents.append (row + "\n");
                   row =
                      String
                         .format (
                            "%-20s%-6s", "FRICTION FORCE (N)",
                            cd.getFrictionForce ().toString ("%.3f"));
-                  contactEvents.append (row + System.lineSeparator ());
+                  contactEvents.append (row + "\n");
                });
             }
          }
          else {
-            contactEvents
-               .append ("NO CONTACT DETECTED." + System.lineSeparator ());
+            contactEvents.append ("NO CONTACT DETECTED." + "\n");
          }
       });
       writer.print (contactEvents.toString ());

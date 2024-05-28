@@ -57,3 +57,5 @@ CVS
 .DS_Store
 src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_input_file.txt
 src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_message_file.txt
+src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_input_file.txt
+*.txt

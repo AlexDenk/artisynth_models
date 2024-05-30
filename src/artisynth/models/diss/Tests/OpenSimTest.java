@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
@@ -556,6 +557,7 @@ public class OpenSimTest extends RootModel {
       motcon.getMotionTargetTerm ().setUsePDControl (true);
       motcon.getMotionTargetTerm ().setKp (0.5);
       motcon.setDebug (false);
+      motcon.setExcitationBounds (0.05, 0.95);
       defineMotionTargets (motcon, map, scale);
       motcon.createProbesAndPanel (this);
       addController (motcon);
@@ -991,15 +993,9 @@ public class OpenSimTest extends RootModel {
       myBodies = getBodiesFromOsim ();
       myJoints = getJointsFromOsim (myBodies);
       myMuscles = getMusclesFromOsim ();
-
-      ControlPanel panel = new ControlPanel ("Muscle excitations");
-      myMuscles.forEach (muscle -> {
-         panel.addWidget (muscle.getName (), muscle, "excitation");
-      });
-      addControlPanel (panel);
-
       myMarkers = getMarkerFromOsim ();
       setInitialPose ();
+      setInitialExcitations ();
    }
 
    /**
@@ -1115,6 +1111,19 @@ public class OpenSimTest extends RootModel {
       contMonitor.setName ("Contact monitor");
       contMonitor.setUseFullReport (true);
       addMonitor (contMonitor);
+   }
+
+   /**
+    * Defines a control panel for the excitations of each muscle and sets
+    * initial values.
+    */
+   private void setInitialExcitations () {
+      ControlPanel panel = new ControlPanel ("Muscle excitations");
+      myMuscles.forEach (muscle -> {
+         panel.addWidget (muscle.getName (), muscle, "excitation");
+         muscle.setExcitation (new Random ().nextDouble ());
+      });
+      addControlPanel (panel);
    }
 
    /**

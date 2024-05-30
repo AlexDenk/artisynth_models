@@ -57,16 +57,23 @@ public class ContactMonitor extends MonitorBase {
    // ----------------------------Nested Classes ------------------------------
 
    public class CustomContactForce extends ContactForceBehavior {
+      String myHostName;
       double myStiffness;
       double myDamping;
+      List<CollisionBehavior> matches;
+      HashMap<CollisionBehavior,Vector3d> myAccumulatedContact =
+         new HashMap<CollisionBehavior,Vector3d> ();
 
       public CustomContactForce () {
-         new CustomContactForce (0.0, 0.0);
+         new CustomContactForce (0.1, 0.1);
       }
 
       public CustomContactForce (double comp, double damping) {
          this.myStiffness = 1 / comp;
          this.myDamping = damping;
+         if (this.matches != null) {
+            this.matches.clear ();
+         }
       }
 
       @Override
@@ -78,19 +85,38 @@ public class ContactMonitor extends MonitorBase {
          fres[1] = 1 / myStiffness; // compliance as inverse of stiffness
          fres[2] = myDamping; // damping
 
-         List<CollisionResponse> host =
-            collisionsAll
-               .stream ().filter (s -> s == this.myPropHost)
+         CollisionBehavior host = (CollisionBehavior)this.myPropHost;
+         matches =
+            behaviors
+               .stream ().filter (s -> s.equals (host))
                .collect (Collectors.toList ());
-         assert host.size () == 1 : "Error: current response computation fits"
-         + " to more than 1 collision response";
 
-         collisionsActive.forEach (c -> {
-            if (c.equals (host.get (0))) {
-               // do update and stuff!
-            }
-         });
+         assert matches.size () == 1 : "Error: ambiguous collision behaviors"
+         + " for current response computation.";
 
+         // host name wird immer null wenn neues contact interface
+         if (myHostName == null && myAccumulatedContact.get (host) != null) {
+            //Vector3d force = myAccumulatedContact.get (host);
+            // which time take data from?
+            //int frame = myForces.getFrame (0);
+            // which side are we at?
+            //String side = "";
+            //Vector3d refForce = myForces.getData (frame, side + " GRF");
+
+            //if (!force.epsilonEquals (refForce, 10)) {
+               // update compliance accordingly.
+               //this.myStiffness = myStiffness * 1.01;
+               // all contact forces of all points need to be updated and summed
+               // again
+               // but distance is apparently the same for each contact interface
+               // which would mean forces are equal and could be scaled
+            //}
+
+         }
+         Vector3d force = new Vector3d (0, 0, 0);
+         force.scaledAdd (fres[0], normal);
+         myAccumulatedContact.merge (host, force, Vector3d::add);
+         myHostName = host.getName ();
       }
    }
 

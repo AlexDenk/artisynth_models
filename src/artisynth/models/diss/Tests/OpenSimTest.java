@@ -594,6 +594,12 @@ public class OpenSimTest extends RootModel {
       motcon.setProbeDuration (duration);
       // Enable KKT Factorization
       motcon.setUseKKTFactorization (true);
+      // Enable incremental computation
+      motcon.setComputeIncrementally (true);
+      // 
+      motcon.getMotionTargetTerm ().setUsePDControl (true);
+      // 
+      motcon.getMotionTargetTerm ().setKp (0.5);
       // Enable debug mode
       motcon.setDebug (false);
       // Define motion targets

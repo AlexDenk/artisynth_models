@@ -87,7 +87,6 @@ import maspack.util.PathFinder;
 
 public class OpenSimTest extends RootModel {
    // -------------------------------Static Fields------------------------------
-   // Current System time during simulation
    static double mySystemTime = 0.0;
 
    // ----------------------------Instance Fields-------------------------------
@@ -147,23 +146,14 @@ public class OpenSimTest extends RootModel {
       myName = getNameFromFileDiaglog (fc);
       myMech.setName (myName);
       addModel (myMech);
-      // Set general simulation properties
       setSimulationProperties ();
-      // Import the OpenSim Geometry
       initializeOsim (myName, myScale);
-      // Import FE Meshes
       // initializeFEM();
-      // Retrieve the collision manager to define contact properties
       CollisionManager collMan = myMech.getCollisionManager ();
       collMan.setName ("Collision manager");
-      // Set individual contact properties and initialize the contact monitor
       setContactProps (collMan);
-      // Define input and output probes
       defineIOProbes (myName, myScale);
-      // Set render properties
       setRenderProps (collMan, myScale);
-      // Write the generated Input parameters to a file within the working
-      // directory
       writeInputToFile (myName);
    }
 
@@ -182,7 +172,7 @@ public class OpenSimTest extends RootModel {
     * Sets the rendering properties of every body within the root model.
     */
    public void setBodyRenderProps () {
-      // Hide each rigid body personal coordinate system.
+      // disable components coordinate systems rendering
       myBodies.forEach (body -> {
          // CS is stored within the first entry of the underlying mesh
          // component list "frame_geometry"
@@ -193,7 +183,6 @@ public class OpenSimTest extends RootModel {
             }
          });
       });
-      // Set smooth shading for rigid bodies
       RenderProps.setShading (myBodies, Shading.SMOOTH);
    }
 
@@ -207,7 +196,6 @@ public class OpenSimTest extends RootModel {
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
    public void setContactRenderProps (CollisionManager coll, int scale) {
-      // Define body - body contact render props
       coll.setDrawIntersectionPoints (true);
       coll.setDrawContactForces (true);
       coll.setDrawFrictionForces (true);
@@ -227,7 +215,6 @@ public class OpenSimTest extends RootModel {
       myMarkers.forEach (m -> {
          RenderProps.setPointColor (m, Color.PINK);
       });
-      // Access source and target points of the motion target controller
       TrackingController controller =
          (TrackingController)getControllers ().get (0);
       controller.getTargetPoints ().forEach (c -> {
@@ -262,17 +249,11 @@ public class OpenSimTest extends RootModel {
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
    public void setRenderProps (CollisionManager coll, int scale) {
-      // Setup contact rendering
       setContactRenderProps (coll, scale);
-      // disable components coordinate systems rendering
       setBodyRenderProps ();
-      // Muscle rendering
       setMuscleRenderProps (scale);
-      // Marker rendering
       setMarkerRendering (scale);
-      // Stress surface rendering
       // setSurfaceRenderProps ();
-      // Viewer properties
       setViewerProps ();
    }
 
@@ -281,15 +262,11 @@ public class OpenSimTest extends RootModel {
     */
    public void setSurfaceRenderProps () {
       ColorBar cbar = new ColorBar (null);
-      // Stress surface rendering
       myMeshes.forEach (mesh -> {
          mesh.setSurfaceRendering (SurfaceRender.Stress);
          mesh.setStressPlotRanging (Ranging.Auto);
       });
-      // Set the properties of the corresponding colourbar.
-      // Name of the colourbar.
       cbar.setName ("colorBar");
-      // Set the display to a float number with 2 decimal places.
       cbar.setNumberFormat ("%.2f");
       // Initialize the colourbar with 10 ticks.
       cbar.populateLabels (0.0, 0.1, 10);
@@ -318,13 +295,12 @@ public class OpenSimTest extends RootModel {
     * if there's an issue writing to the file
     */
    public void writeInputToFile (String myName) throws IOException {
-      // Write the model Input to the input file via the writer.
       String inputName = myName + "/Output/" + myName + "_input_file.txt";
       String inputPath =
          ArtisynthPath.getSrcRelativePath (this, inputName).toString ();
       try (PrintWriter writer =
          new PrintWriter (new FileWriter (inputPath, false))) {
-         // Append header
+
          StringBuilder output = new StringBuilder ();
          output
             .append (
@@ -339,30 +315,22 @@ public class OpenSimTest extends RootModel {
                "%% alexander.denk@uni-due.de                                  %%\n")
             .append (
                "%%------------------------------------------------------------%%\n");
-         // Append solver info
+
          MechSystemSolver solver = myMech.getSolver ();
          writeSolverInfo (output, solver);
-         // Append physics info
          writePhysicsInfo (output, myMech);
-         // Append model info
          String modelPath = myName + "/gait2392_simbody_scaled.osim";
          writeModelInfo (output, modelPath, myBodies);
-         // Append joint info
          writeJointInfo (output, myJoints);
-         // Append muscle info
          writeMuscleInfo (output, myMuscles);
-         // Append FEM info
          writeFEMInfo (output, myMeshes);
-         // Append probes info
          TrackingController controller =
             (TrackingController)getControllers ().get ("Motion controller");
          writeProbesInfo (
             output, controller, myMotion, myMap, myForces, myMarkers);
-         // Append contact info
          CollisionManager coll = myMech.getCollisionManager ();
          CollisionBehaviorList behav = coll.behaviors ();
          writeContactInfo (output, coll, behav);
-         // write to file
          writer.print (output.toString ());
       }
    }
@@ -514,15 +482,12 @@ public class OpenSimTest extends RootModel {
     */
    private void createCollision (
       RigidBody bodyA, RigidBody bodyB, double comp, double damp) {
-      // Add a collision behavior for each connection.
       CollisionBehavior behavior;
       behavior = myMech.setCollisionBehavior (bodyA, bodyB, true);
-      // Set compliant contact properties
       behavior.setCompliance (comp);
       behavior.setDamping (damp);
       // Additional method to reduce overconstrained contact.
       behavior.setBilateralVertexContact (false);
-      // Add a collision response for the contact history
       myMech.setCollisionResponse (bodyA, bodyB);
    }
 
@@ -546,18 +511,13 @@ public class OpenSimTest extends RootModel {
    private void createProbeandPanel (
       JointBase jt, ControlPanel panel, String prop, double start, double stop,
       double step) {
-      // Add widget for each joint property
       panel.addWidget (jt, prop);
-      // Define, where the NumOutProbe is written to.
       String filepath =
          PathFinder.getSourceRelativePath (this, "/" + prop + ".txt");
-      // Define NumericOutPutProbe
       NumericOutputProbe probe =
          new NumericOutputProbe (jt, prop, filepath, step);
-      // Set probe properties
       probe.setName (prop);
       probe.setStartStopTimes (start, stop);
-      // Add the probe to the controller.
       addOutputProbe (probe);
    }
 
@@ -583,7 +543,6 @@ public class OpenSimTest extends RootModel {
    private void defineControllerAndProps (
       MarkerMotionData motion, MarkerMapping map, int scale)
       throws IOException {
-      // Initialize controller
       TrackingController motcon =
          new TrackingController (myMech, "Motion controller");
       motcon.addL2RegularizationTerm (1);
@@ -592,22 +551,14 @@ public class OpenSimTest extends RootModel {
          motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
       motcon.setProbeDuration (duration);
-      // Enable KKT Factorization
       motcon.setUseKKTFactorization (true);
-      // Enable incremental computation
-      motcon.setComputeIncrementally (true);
-      // 
+      // motcon.setComputeIncrementally (true);
       motcon.getMotionTargetTerm ().setUsePDControl (true);
-      // 
       motcon.getMotionTargetTerm ().setKp (0.5);
-      // Enable debug mode
       motcon.setDebug (false);
-      // Define motion targets
       defineMotionTargets (motcon, map, scale);
-      // Add controller before populating the input probes
       motcon.createProbesAndPanel (this);
       addController (motcon);
-      // Populate probes of motion targets
       addProbesToMotionTargets (motcon, map, motion);
    }
 
@@ -623,16 +574,10 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     */
    private void defineIOProbes (String name, int scale) throws IOException {
-      // Read experimental trajectories from file
       myMotion = readTRCFile (name, scale);
-      // Read experimental force data from file
       myForces = readMOTFile (name);
-      // Relate the experimental marker names to the model marker names
-      // from file
-      myMap = getMapFromFile (name);
-      // Generate and populate motion and force targets
+      myMap = readMarkerMappingFile (name);
       defineControllerAndProps (myMotion, myMap, scale);
-      // Define output probes for each joint angle
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
       // within the probe itself
@@ -654,14 +599,9 @@ public class OpenSimTest extends RootModel {
     */
    private void defineMotionTargets (
       TrackingController controller, MarkerMapping map, int scale) {
-      // Add muscles to compute the excitations
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
       });
-      // Add each model marker with a corresponding experimental marker to the
-      // list of controllable markers ("sources") for the tracking
-      // controller. Confusingly, AddMotionTarget adds a source, but also
-      // generates a corresponding target point.
       myMarkers.forEach (mkr -> {
          try {
             if (map.getExpLabelFromModel (mkr.getName ()) != null) {
@@ -698,9 +638,9 @@ public class OpenSimTest extends RootModel {
 
    /**
     * Defines joint constraints based on jointsets or by defining the joints
-    * based on the rigid bodies, that are part of the model. By accessing the
+    * based on the rigid bodies, that are part of the model by accessing the
     * connectors of every body and writing them to a separate list. Connectors
-    * are defined per rigid body, a body that is connected to 3 bodies, has
+    * are defined per rigid body. So a body that is connected to 3 bodies, has
     * therefore three different connectors. The connectors in each rigid body
     * are ordered in such a way, that each joint is exactly addressed once, if
     * the first index of the connector list (getConnectors.get(0)) in every
@@ -713,9 +653,6 @@ public class OpenSimTest extends RootModel {
    @SuppressWarnings("unchecked")
    private RenderableComponentList<JointBase> getJointsFromOsim (
       RenderableComponentList<RigidBody> myBodies) {
-      // Check whether a jointset is already apparent in the model. If so,
-      // then define joint constraints based on them. If not, retrieve them
-      // from the rigid bodies of the model.
       if (myMech.contains (myMech.get ("jointset"))) {
          System.out.println ("Generated joint constraints from jointset.");
          myJoints = (RenderableComponentList<JointBase>)myMech.get ("jointset");
@@ -798,13 +735,10 @@ public class OpenSimTest extends RootModel {
                System.out
                   .println (
                      "Generated joint constraints from ridig body connectors.");
-               // Write all joints to a joint list
                myJoints.add ((JointBase)rb.getConnectors ().get (0));
                int end = myJoints.size ();
                DoubleInterval range = new DoubleInterval ();
                switch (rb.getName ()) {
-                  // specify the joint constraints for each joint individually
-                  // by addressing the respective dof (int idx) and its range.
                   case "pelvis":
                      range.set (-90, 90);
                      myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
@@ -887,7 +821,8 @@ public class OpenSimTest extends RootModel {
     * @return {@link MarkerMapping} map
     * @throws IOException
     */
-   private MarkerMapping getMapFromFile (String name) throws IOException {
+   private MarkerMapping readMarkerMappingFile (String name)
+      throws IOException {
       String mapName = name + "/Input/" + name + "_markers.txt";
       File mapFile = ArtisynthPath.getSrcRelativeFile (this, mapName);
       BufferedReader reader = new BufferedReader (new FileReader (mapFile));
@@ -929,18 +864,17 @@ public class OpenSimTest extends RootModel {
     */
    @SuppressWarnings("unchecked")
    private RenderableComponentList<FrameMarker> getMarkerFromOsim () {
-      // Store model markers
       myMarkers =
          (RenderableComponentList<FrameMarker>)myMech.get ("markerset");
       // Overwrite attachments for toe markers, since attached to calcanei
-      myMarkers.forEach (m -> {
+      myMarkers.forEach (marker -> {
          RigidBody newFrame = null;
          Vector3d newRef;
          Vector3d pos;
-         if (m.getName ().contains ("R_Toe")) {
+         if (marker.getName ().contains ("R_Toe")) {
             newFrame = myBodies.get ("toes_r");
          }
-         else if (m.getName ().contains ("L_Toe")) {
+         else if (marker.getName ().contains ("L_Toe")) {
             newFrame = myBodies.get ("toes_l");
          }
          else {
@@ -948,18 +882,15 @@ public class OpenSimTest extends RootModel {
          }
          Point3d newLoc = new Point3d (0, 0, 0);
          newRef = (Vector3d)newFrame.getPosition ();
-         pos = (Vector3d)m.getPosition ();
+         pos = (Vector3d)marker.getPosition ();
          newLoc.sub (pos, newRef);
-         // Set new attachment
-         m.setFrame (newFrame);
-         // Overwrite refpos vector after setting attachment
-         m.setRefPos ((Point3d)newRef);
-         // Overwrite location vector after setting attachment
-         m.setLocation (newLoc);
+         marker.setFrame (newFrame);
+         marker.setRefPos ((Point3d)newRef);
+         marker.setLocation (newLoc);
          System.out
             .println (
-               "Warning: Attachment adjusted for: " + m.getName () + " to: "
-               + newFrame.getName ());
+               "Warning: Attachment adjusted for: " + marker.getName ()
+               + " to: " + newFrame.getName ());
       });
       // Provide some info in the console
       System.out.println ("Model markers: " + myMarkers.size ());
@@ -974,19 +905,15 @@ public class OpenSimTest extends RootModel {
     */
    @SuppressWarnings("unchecked")
    private List<MultiPointMuscle> getMusclesFromOsim () {
-      // Store force components temporally
       RenderableComponentList<ModelComponent> forces =
          (RenderableComponentList<ModelComponent>)myMech.get ("forceset");
       // forces is itself a multicomponent structure and will be split up in
       // its forces and the corresponding attachment points
       forces.forEach (frc -> {
-         // Address all children of the structure
          frc.getChildren ().forEachRemaining (obj -> {
-            // Access the attachment points, currently does nothing
             if (obj instanceof PointList) {
                return;
             }
-            // Access the muscles (that also contain the attachments)
             if (obj instanceof MultiPointMuscle) {
                myMuscles.add ((MultiPointMuscle)obj);
             }
@@ -1002,15 +929,10 @@ public class OpenSimTest extends RootModel {
     * @return
     */
    private String getNameFromFileDiaglog (JFileChooser fc) {
-      // Generate working directory defined by user input.
       fc.setCurrentDirectory (ArtisynthPath.getSrcRelativeFile (this, myName));
-      // Set the file dialog to accept directories only
       fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY);
-      // Set dialog title to be more specific
       fc.setDialogTitle ("Please select a working directory.");
-      // Show file dialog
       fc.showOpenDialog (null);
-      // Set name specifier
       return fc.getSelectedFile ().getName ();
    }
 
@@ -1066,15 +988,17 @@ public class OpenSimTest extends RootModel {
     */
    private void initializeOsim (String myName, int scale) {
       readOsimFile (myName, scale);
-      // Store rigid body components
       myBodies = getBodiesFromOsim ();
-      // Define and store joint constraints
       myJoints = getJointsFromOsim (myBodies);
-      // Store muscle components
       myMuscles = getMusclesFromOsim ();
-      // Store marker components
+
+      ControlPanel panel = new ControlPanel ("Muscle excitations");
+      myMuscles.forEach (muscle -> {
+         panel.addWidget (muscle.getName (), muscle, "excitation");
+      });
+      addControlPanel (panel);
+
       myMarkers = getMarkerFromOsim ();
-      // Set initial body pose
       setInitialPose ();
    }
 
@@ -1089,14 +1013,10 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     */
    private ForceData readMOTFile (String name) throws IOException {
-      // Retrieve the experimental forces from mot file
-      // Specifiy mot file to be read
       String motName = name + "/Input/" + name + "_forces.mot";
       String motPath = ArtisynthPath.getSrcRelativePath (this, motName);
       MOTReader motReader = new MOTReader (new File (motPath));
-      // Read mot file
       motReader.readData ();
-      // Print reading details to the console
       System.out
          .println ("Experimental force data: " + motReader.getNumLabels ());
       System.out
@@ -1111,20 +1031,17 @@ public class OpenSimTest extends RootModel {
     * @param name
     * Name specifier for the current working directory
     * @param scale
+    * Unit scale factor for the current model (m = 1, mm = 1000)
     */
    private void readOsimFile (String name, int scale) {
-      // Define location and name of the loaded osim file
       String modelPath = myName + "/gait2392_simbody_scaled.osim";
       File osimFile = ArtisynthPath.getSrcRelativeFile (this, modelPath);
       String geometryPath = myName + "/Geometry/";
       File geometryFile = ArtisynthPath.getSrcRelativeFile (this, geometryPath);
-      // Read the specified osim file
       OpenSimParser parser = new OpenSimParser (osimFile);
       parser.setGeometryPath (geometryFile);
       parser.createModel (myMech);
-      // Scale the model from meters to millimeters
       myMech.scaleDistance (scale);
-      // Set rigid body damping parameters
       myMech.setFrameDamping (0.01);
       myMech.setRotaryDamping (0.2);
       // myMech.setInertialDamping (0.1);
@@ -1144,21 +1061,16 @@ public class OpenSimTest extends RootModel {
     */
    private MarkerMotionData readTRCFile (String name, int scale)
       throws IOException {
-      // Retrieve experimental marker data from trc
-      // Specify trc file name to be read
       String trcName = name + "/Input/" + name + "_positions.trc";
       String trcPath =
          ArtisynthPath.getSrcRelativePath (this, trcName).toString ();
       TRCReader trcReader = new TRCReader (new File (trcPath));
-      // Read trc file
       trcReader.readData ();
-      // Print reading details to the console
       System.out
          .println (
             "Experimental markers: " + trcReader.getMarkerLabels ().size ());
       System.out
          .println ("TRC file: read " + trcReader.getNumFrames () + " frames");
-      // Store marker trajectories and corresponding frames
       MarkerMotionData motion = trcReader.getMotionData ();
       // Scale the marker trajectories individually, since there is no general
       // .scale () method for marker positions
@@ -1186,45 +1098,23 @@ public class OpenSimTest extends RootModel {
     * @throws
     */
    private void setContactProps (CollisionManager coll) throws IOException {
-      // Enable reduce overconstrained contact.
       coll.setReduceConstraints (true);
-      // Define compliant contact per joint in the OpenSim Model
       myJoints.forEach (jt -> {
          if (jt.getName ().contains ("pelvis")) {
             return;
          }
-         // Access the respective bodies, that are connected to each joint.
          RigidBody bodyA = (RigidBody)jt.getBodyA ();
          RigidBody bodyB = (RigidBody)jt.getBodyB ();
-         // Calculate compliant contact properties
          double comp = 0.1;
          double mass = bodyA.getMass () + bodyB.getMass ();
          double damp = 2 * 1 * Math.sqrt (1 / comp * mass);
-         // Set collision behavior and response
          createCollision (bodyA, bodyB, comp, damp);
       });
-      // Define Ground Contact
-      // TODO: Ground contact auskonvergieren
-      /*
-       * RigidBody ground = (RigidBody)myMech.get ("ground"); RigidBody calcnR =
-       * myBodies.get ("calcn_r"); RigidBody calcnL = myBodies.get ("calcn_l");
-       * RigidBody toesR = myBodies.get ("toes_r"); RigidBody toesL =
-       * myBodies.get ("toes_l"); // Calculate compliant contact for the body
-       * weight with a softer // contact stiffness double comp = 1; double mass
-       * = myMech.getActiveMass (); double damp = 2 * 1 * Math.sqrt (1 / comp *
-       * mass); createCollision (ground, calcnR, comp, damp); createCollision
-       * (ground, calcnL, comp, damp); createCollision (ground, toesR, comp,
-       * damp); createCollision (ground, toesL, comp, damp);
-       */
-      // Initialize the contact monitor to handle all individual collision
-      // responses
       ContactMonitor contMonitor =
          new ContactMonitor (coll.responses (), myName);
       contMonitor.setName ("Contact monitor");
-      // Enable FullReportMode
       contMonitor.setUseFullReport (true);
       addMonitor (contMonitor);
-      // TODO: Ground collision mesh
    }
 
    /**
@@ -1253,14 +1143,10 @@ public class OpenSimTest extends RootModel {
       solver.setIntegrator (Integrator.Trapezoidal);
       // Use global stiffness, since more accurate and stable
       solver.setStabilization (PosStabilization.GlobalStiffness);
-      // Activate adaptive stepping
       setAdaptiveStepping (true);
       setMaxStepSize (0.0017);
-      // Define scale (mm = 1000, or m = 1)
       myScale = 1;
-      // Define Gravity
       myMech.setGravity (new Vector3d (0, -9.81, 0));
-      // Throw warning message in case of zero gravity
       if (myMech.getGravity ().equals (new Vector3d (0, 0, 0))) {
          JFrame frame = new JFrame ("Warning");
          frame.add (new JLabel ("Warning: Zero gravitation!", JLabel.CENTER));
@@ -1297,7 +1183,6 @@ public class OpenSimTest extends RootModel {
          .append ("Number of contact interfaces: ")
          .append (coll.behaviors ().size ()).append ("\n")
          .append ("\nINDIVIDUAL\n");
-      // Access each individual contact behavior for each model component
       behav.forEach (cb -> {
          output
             .append ("Contact Interface: ").append (cb.getName ()).append ("\n")
@@ -1387,8 +1272,6 @@ public class OpenSimTest extends RootModel {
             "%%------------------------------------------------------------%%\n")
          .append ("\nBODIES\n").append ("Model: ").append (path).append ("\n")
          .append ("Number of bodies: ").append (bodies.size ()).append ("\n\n");
-      // Identify unclosed meshes before appending individual info about each
-      // body
       bodies.forEach (rb -> {
          if (!rb.getCollisionMesh ().isClosed ()) {
             output
@@ -1397,7 +1280,7 @@ public class OpenSimTest extends RootModel {
          }
       });
       output.append ("\n");
-      // append individual info for each body
+
       bodies.forEach (rb -> {
          if (rb.getName ().equals ("ground")) {
             return;
@@ -1563,16 +1446,13 @@ public class OpenSimTest extends RootModel {
          .append ("Model markers: ").append (marker.size ()).append ("\t")
          .append ("Experimental markers: ").append (motion.numMarkers ())
          .append ("\n");
-      // Formatting table header
       String header =
          String
             .format (
                "%-16s%-16s%-16s%-6s", "Model marker", "Exp. marker",
                "Attachment", "Weight");
       output.append (header).append ("\n");
-      // Add marker pairs
       marker.forEach (mkr -> {
-         // Entry<String,Double> entry = map.get (mkr.getName ());
          try {
             String label = map.getExpLabelFromModel (mkr.getName ());
             if (label == null) {
@@ -1597,16 +1477,12 @@ public class OpenSimTest extends RootModel {
             e.printStackTrace ();
          }
       });
-      // Add unassigned markers
+
       output.append ("\nNot assigned experimental markers:\n");
-      // Retrieve all non null experimental marker names.
       List<String> assignedLabels =
          map
             .getExpLabels ().stream ().filter (Objects::nonNull)
             .collect (Collectors.toList ());
-
-      // Check for each experimental markers that are not in the list of
-      // assigned labels.
       motion
          .getMarkerLabels ().stream ()
          .filter (label -> !assignedLabels.contains (label))

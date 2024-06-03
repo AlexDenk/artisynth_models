@@ -17,6 +17,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import artisynth.core.driver.Main;
 import artisynth.core.femmodels.FemFactory;
 import artisynth.core.femmodels.FemModel.Ranging;
 import artisynth.core.femmodels.FemModel.SurfaceRender;
@@ -24,7 +25,6 @@ import artisynth.core.femmodels.FemModel3d;
 import artisynth.core.gui.ControlPanel;
 import artisynth.core.inverse.ConnectorForceRenderer;
 import artisynth.core.inverse.ForceTarget;
-import artisynth.core.inverse.ForceTargetTerm;
 import artisynth.core.inverse.MotionTargetTerm;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
@@ -63,14 +63,11 @@ import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
 import maspack.matrix.AxisAlignedRotation;
 import maspack.matrix.Point3d;
-import maspack.matrix.RigidTransform3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
 import maspack.properties.Property;
-import maspack.render.IsRenderable;
 import maspack.render.RenderList;
 import maspack.render.RenderProps;
-import maspack.render.Renderer;
 import maspack.render.Renderer.FaceStyle;
 import maspack.render.Renderer.LineStyle;
 import maspack.render.Renderer.Shading;
@@ -85,10 +82,6 @@ import maspack.util.PathFinder;
  */
 
 public class OpenSimTest extends RootModel {
-   // -------------------------------Static Fields------------------------------
-   // Current System time during simulation
-   static double mySystemTime = 0.0;
-
    // ----------------------------Instance Fields-------------------------------
    // All rigid bodies in the model
    RenderableComponentList<RigidBody> myBodies = null;
@@ -102,7 +95,7 @@ public class OpenSimTest extends RootModel {
    MechModel myMech = new MechModel ();
    // All finite element meshes in the model
    RenderableComponentList<FemModel3d> myMeshes = null;
-   //
+   // Experimental and model marker names and weights
    MarkerMapping myMap;
    // Experimental marker trajectories
    MarkerMotionData myMotion;
@@ -112,84 +105,6 @@ public class OpenSimTest extends RootModel {
    String myName = null;
    // Scale of the model.
    int myScale;
-
-   // ------------------------------Nested Classes------------------------------
-   /**
-    * Renders the experimental COP from ForceData
-    * 
-    * @author Alexander Denk
-    */
-   public class COPRenderer implements IsRenderable {
-      Vector3d[] copPos = new Vector3d[2];
-      Vector3d[] grfPos = new Vector3d[4];
-      int scale;
-      int f0;
-      int f1;
-
-      @Override
-      public void prerender (RenderList list) {
-         // Get current positions of the left and right COP
-         f1 = (int)(mySystemTime / getMaxStepSize ());
-         // Execute the following only once per frame
-         if (f1 > f0) {
-            copPos[0] = myForces.getData (f1, "Right COP");
-            copPos[1] = myForces.getData (f1, "Left COP");
-            // start point right
-            FrameMarker mkrR = (FrameMarker)myMech.get ("cop_ref_1");
-            grfPos[0] = mkrR.getPosition ();
-            // end point right
-            Vector3d buf =
-               myForces.getData (f1, "Right GRF").scale (0.001 * scale);
-            grfPos[1] = grfPos[1].add (grfPos[0], buf);
-            // start point left
-            FrameMarker mkrL = (FrameMarker)myMech.get ("cop_ref_2");
-            grfPos[2] = mkrL.getPosition ();
-            // end point left
-            buf = myForces.getData (f1, "Left GRF").scale (0.001 * scale);
-            grfPos[3] = grfPos[3].add (grfPos[2], buf);
-         }
-         f0 = f1;
-         // TODO: handle simulation reset
-      }
-
-      @Override
-      public void render (Renderer renderer, int flags) {
-         renderer.setColor (Color.GRAY.brighter ());
-         renderer.drawSphere (copPos[0], 0.01 * scale);
-         renderer.drawSphere (copPos[1], 0.01 * scale);
-         // right grf arrow
-         if (getInputProbes ()
-            .get ("right ground reaction forces").isActive ()) {
-            renderer.drawArrow (grfPos[0], grfPos[1], 0.01 * scale, false);
-         }
-         // left grf arrow
-         if (getInputProbes ()
-            .get ("left ground reaction forces").isActive ()) {
-            renderer.drawArrow (grfPos[2], grfPos[3], 0.01 * scale, false);
-         }
-      }
-
-      @Override
-      public void updateBounds (Vector3d pmin, Vector3d pmax) {
-      }
-
-      @Override
-      public int getRenderHints () {
-         return 0;
-      }
-
-      public COPRenderer (int s) {
-         this.scale = s;
-         this.f0 = 0;
-         // Define initial drawing coordinates
-         this.copPos[0] = new Vector3d (0, 0, 0);
-         this.copPos[1] = new Vector3d (0, 0, 0);
-         this.grfPos[0] = new Vector3d (0, 0, 0);
-         this.grfPos[1] = new Vector3d (0, 0, 0);
-         this.grfPos[2] = new Vector3d (0, 0, 0);
-         this.grfPos[3] = new Vector3d (0, 0, 0);
-      }
-   }
 
    // -----------------------------Constructors---------------------------------
    public OpenSimTest () {
@@ -201,16 +116,6 @@ public class OpenSimTest extends RootModel {
 
    // --------------------------Static Methods----------------------------------
    public static void main (String[] args) throws IOException {
-   }
-
-   /**
-    * Updates the current system time ({@code t1}) from any model component,
-    * that is executed each time step, such as controllers, monitors. etc..
-    * 
-    * @param
-    */
-   public static void updateSystemTime (double t1) {
-      mySystemTime = t1;
    }
 
    // -------------------------Instance Methods---------------------------------
@@ -375,11 +280,6 @@ public class OpenSimTest extends RootModel {
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
    public void setRenderProps (CollisionManager coll, int scale) {
-      // Add a cop renderer to the list of renderables
-      COPRenderer copRenderer = new COPRenderer (scale);
-      getMainViewer ().addRenderable (copRenderer);
-      // Setup connector rendering
-      // setConnectorRenderProps (scale);
       // Setup contact rendering
       setContactRenderProps (coll, scale);
       // disable components coordinate systems rendering
@@ -762,7 +662,7 @@ public class OpenSimTest extends RootModel {
       throws IOException {
       // Initialize controller
       MotionTargetController motcon =
-         new MotionTargetController (myMech, "Motion controller", name);
+         new MotionTargetController (myMech, "Motion controller", name, scale);
       motcon.addForceData (forces);
       motcon.addMotionData (motion, map);
       motcon.addL2RegularizationTerm (1);

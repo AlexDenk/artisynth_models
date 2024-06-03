@@ -78,7 +78,7 @@ public class COPProjectionTest extends OpenSimTest {
    private void setupController () throws IOException {
       myForces = readMOTFile ();
       controller =
-         new MotionTargetController (mech, "controller", "COPPRojectionTest");
+         new MotionTargetController (mech, "controller", "COPPRojectionTest", 1);
       controller.addForceData (myForces);
       controller.addCOPReference (copRef1);
       controller.addCOPReference (copRef2);

@@ -33,6 +33,7 @@ import maspack.matrix.Vector3d;
  */
 
 public class ContactMonitor extends MonitorBase {
+   static double mySystemTimes[] = new double[2];
    // ----------------------------Instance Fields------------------------------
    // Name of the file, where the contact history is written to
    String msgName = null;
@@ -96,27 +97,30 @@ public class ContactMonitor extends MonitorBase {
 
          // host name wird immer null wenn neues contact interface
          if (myHostName == null && myAccumulatedContact.get (host) != null) {
-            //Vector3d force = myAccumulatedContact.get (host);
+            Vector3d force = myAccumulatedContact.get (host);
             // which time take data from?
-            //int frame = myForces.getFrame (0);
+            int frame = myForces.getFrame (0);
             // which side are we at?
-            //String side = "";
-            //Vector3d refForce = myForces.getData (frame, side + " GRF");
+            // Should be contained on the hostname. Contains an l or r in case
+            // of left or right?
+            String side = "";
+            Vector3d refForce = myForces.getData (frame, side + " GRF");
 
-            //if (!force.epsilonEquals (refForce, 10)) {
+            if (!force.epsilonEquals (refForce, 10)) {
                // update compliance accordingly.
-               //this.myStiffness = myStiffness * 1.01;
+               this.myStiffness = myStiffness * 1.01;
                // all contact forces of all points need to be updated and summed
                // again
                // but distance is apparently the same for each contact interface
                // which would mean forces are equal and could be scaled
-            //}
+               // }
 
+            }
+            Vector3d force1 = new Vector3d (0, 0, 0);
+            force1.scaledAdd (fres[0], normal);
+            myAccumulatedContact.merge (host, force1, Vector3d::add);
+            myHostName = host.getName ();
          }
-         Vector3d force = new Vector3d (0, 0, 0);
-         force.scaledAdd (fres[0], normal);
-         myAccumulatedContact.merge (host, force, Vector3d::add);
-         myHostName = host.getName ();
       }
    }
 
@@ -124,6 +128,13 @@ public class ContactMonitor extends MonitorBase {
    public ContactMonitor (String name) throws IOException {
       super ();
       initializwWriter (name);
+   }
+
+   // ---------------------------Static Methods--------------------------------
+
+   public static void updateSystemTime (double t0, double t1) {
+      mySystemTimes[0] = t0;
+      mySystemTimes[1] = t1;
    }
 
    // ----------------------------Instance Methods-----------------------------
@@ -137,10 +148,13 @@ public class ContactMonitor extends MonitorBase {
       catch (Exception e) {
          e.printStackTrace ();
       }
+
+      mySystemTimes[0] = t0;
       super.initialize (t0);
    }
 
    public void apply (double t0, double t1) {
+      updateSystemTime (t0, t1);
       // Needs to be changed back to collisionsActive after testing
       collisionsAll.forEach (cr -> {
          if (cr.inContact ()) {

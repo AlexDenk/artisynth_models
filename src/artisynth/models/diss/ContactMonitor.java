@@ -95,7 +95,7 @@ public class ContactMonitor extends MonitorBase {
          assert matches.size () == 1 : "Error: ambiguous collision behaviors"
          + " for current response computation.";
 
-         // host name wird immer null wenn neues contact interface
+         // target new contact interfaces
          if (myHostName == null && myAccumulatedContact.get (host) != null) {
             Vector3d force = myAccumulatedContact.get (host);
             // which time take data from?
@@ -107,7 +107,6 @@ public class ContactMonitor extends MonitorBase {
             Vector3d refForce = myForces.getData (frame, side + " GRF");
 
             if (!force.epsilonEquals (refForce, 10)) {
-               // update compliance accordingly.
                this.myStiffness = myStiffness * 1.01;
                // all contact forces of all points need to be updated and summed
                // again
@@ -155,36 +154,6 @@ public class ContactMonitor extends MonitorBase {
 
    public void apply (double t0, double t1) {
       updateSystemTime (t0, t1);
-      // Needs to be changed back to collisionsActive after testing
-      collisionsAll.forEach (cr -> {
-         if (cr.inContact ()) {
-
-            // now unnecessary
-            List<ContactData> cdata = cr.getContactData ();
-            Vector3d force = calculateContactForces (cdata);
-            int frame = myForces.getFrame (t1);
-
-            // Which side are we at?
-            String side;
-            if (cr.getName ().contains ("_r")) {
-               side = "Right";
-            }
-            else {
-               side = "Left";
-            }
-            if (!force
-               .epsilonEquals (myForces.getData (frame, side + " GRF"), 10)) {
-               // percentage based tolerance
-               CollisionBehavior behavior = collisionMap.get (cr);
-               double comp = behavior.getCompliance () * 1.5; // What update?
-               behavior.setCompliance (comp);
-
-               // get new contact forces...
-            }
-
-         }
-      });
-
       writeContactToFile (t0);
    }
 

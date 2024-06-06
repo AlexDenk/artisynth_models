@@ -660,7 +660,6 @@ public class OpenSimTest extends RootModel {
       ForceData forces, MarkerMotionData motion, MarkerMapping map, String name,
       int scale)
       throws IOException {
-      // Initialize controller
       MotionTargetController motcon =
          new MotionTargetController (myMech, "Motion controller", name, scale);
       motcon.addForceData (forces);
@@ -670,17 +669,14 @@ public class OpenSimTest extends RootModel {
       double duration =
          motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
+      
       motcon.setProbeDuration (duration);
-      // Enable KKT Factorization
+      motcon.setComputeIncrementally (true);
       motcon.setUseKKTFactorization (true);
-      // Enable debug mode
       motcon.setDebug (false);
-      // Define motion targets
       defineMotionTargets (motcon, map, scale);
-      // Add controller before populating the input probes
       motcon.createProbesAndPanel (this);
       addController (motcon);
-      // Populate probes of motion targets
       addProbesToMotionTargets (motcon, map, motion);
 
       // Define FrameMarkers for the force input probes

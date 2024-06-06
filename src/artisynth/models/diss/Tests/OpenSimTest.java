@@ -751,7 +751,7 @@ public class OpenSimTest extends RootModel {
    private void defineFrameExciters (MotionTargetController controller) {
       Frame calcnR = (Frame)myBodies.get("calcn_r");
       Frame calcnL = (Frame)myBodies.get ("calcn_l");
-      double maxForce = myForces.getMaxForce();
+      double maxForce = myForces.getMaxForce("Right GRF");
       double maxMom = myForces.getMaxMoment();
       createAndAddFrameExciters(controller,myMech, calcnR, maxForce, maxMom);
       createAndAddFrameExciters(controller,myMech, calcnL, maxForce, maxMom);

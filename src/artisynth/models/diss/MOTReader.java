@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import maspack.matrix.*;
 
@@ -25,7 +26,7 @@ public class MOTReader {
       protected ArrayList<String> myForceLabels = new ArrayList<String> ();
       protected ArrayList<Double> myFrameTimes = new ArrayList<Double> ();
       protected int myColumns;
-      
+
       public ForceData () {
       }
 
@@ -85,9 +86,18 @@ public class MOTReader {
          return myFrameTimes.get (frame);
       }
 
-      public double getMaxForce () {
-         
-         return 0;
+      public double getMaxForce (String label) {
+         int num = getForceLabels ().indexOf (label);
+         ArrayList<Vector3d> force = this.getData (num);
+         double norm = 0.0;
+         for (Vector3d f : force) {
+            double max = Double.MIN_VALUE;
+            norm = f.norm ();
+            if (norm > max) {
+               max = norm;
+            }
+         }
+         return max;
       }
 
       public double getMaxMoment () {

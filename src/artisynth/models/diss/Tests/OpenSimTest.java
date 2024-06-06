@@ -17,7 +17,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import artisynth.core.driver.Main;
 import artisynth.core.femmodels.FemFactory;
 import artisynth.core.femmodels.FemModel.Ranging;
 import artisynth.core.femmodels.FemModel.SurfaceRender;
@@ -25,12 +24,16 @@ import artisynth.core.femmodels.FemModel3d;
 import artisynth.core.gui.ControlPanel;
 import artisynth.core.inverse.ConnectorForceRenderer;
 import artisynth.core.inverse.ForceTarget;
+import artisynth.core.inverse.FrameExciter;
+import artisynth.core.inverse.FrameExciter.WrenchComponent;
 import artisynth.core.inverse.MotionTargetTerm;
+import artisynth.core.inverse.TrackingController;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
 import artisynth.core.mechmodels.CollisionBehaviorList;
 import artisynth.core.mechmodels.CollisionManager;
+import artisynth.core.mechmodels.Frame;
 import artisynth.core.mechmodels.FrameMarker;
 import artisynth.core.mechmodels.JointBase;
 import artisynth.core.mechmodels.MechModel;
@@ -575,6 +578,50 @@ public class OpenSimTest extends RootModel {
          expMotion.setActive (true);
       }
    }
+   
+   /**
+    * Creates a complete set of FrameExciters for a given frame and adds them to
+    * a MechModel and a tracking controller.
+    *
+    * @param ctrl
+    * tracking controller to add the exciters to
+    * @param mech
+    * MechModel to add the exciters to
+    * @param frame
+    * frame for which the exciters should be created
+    * @param maxForce
+    * maximum translational force along any axis
+    * @param maxMoment
+    * maximum moment about any axis
+    * 
+    * @author John Lloyd
+    */
+   private FrameExciter[] createAndAddFrameExciters (
+      MotionTargetController ctrl, MechModel mech, Frame frame, double maxForce,
+      double maxMoment) {
+
+      FrameExciter[] exs = new FrameExciter[6];
+      exs[0] = new FrameExciter (null, frame, WrenchComponent.FX, maxForce);
+      exs[1] = new FrameExciter (null, frame, WrenchComponent.FY, maxForce);
+      exs[2] = new FrameExciter (null, frame, WrenchComponent.FZ, maxForce);
+      exs[3] = new FrameExciter (null, frame, WrenchComponent.MX, maxMoment);
+      exs[4] = new FrameExciter (null, frame, WrenchComponent.MY, maxMoment);
+      exs[5] = new FrameExciter (null, frame, WrenchComponent.MZ, maxMoment);
+      // if the frame has a name, use this to create names for the exciters
+      if (frame.getName () != null) {
+         WrenchComponent[] wcs = WrenchComponent.values ();
+         for (int i = 0; i < 6; i++) {
+            exs[i]
+               .setName (
+                  frame.getName () + "_" + wcs[i].toString ().toLowerCase ());
+         }
+      }
+      for (int i = 0; i < 6; i++) {
+         mech.addForceEffector (exs[i]);
+         ctrl.addExciter (exs[i]);
+      }
+      return exs;
+   }
 
    /**
     * Adds a collision response {@code collResp} and behavior {@code collBehav}
@@ -669,29 +716,45 @@ public class OpenSimTest extends RootModel {
       double duration =
          motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
-      
+
       motcon.setProbeDuration (duration);
-      motcon.setComputeIncrementally (true);
+      //motcon.setComputeIncrementally (true);
       motcon.setUseKKTFactorization (true);
       motcon.setDebug (false);
       defineMotionTargets (motcon, map, scale);
+      defineFrameExciters(motcon);
       motcon.createProbesAndPanel (this);
       addController (motcon);
       addProbesToMotionTargets (motcon, map, motion);
 
       // Define FrameMarkers for the force input probes
-      ArrayList<FrameMarker> list = new ArrayList<FrameMarker> ();
-      FrameMarker leftCOP = new FrameMarker ("cop_ref_1");
-      leftCOP.setFrame (myBodies.get ("calcn_l"));
-      myMech.add (leftCOP);
-      list.add (leftCOP);
-      motcon.addCOPReference (leftCOP);
-      FrameMarker rightCOP = new FrameMarker ("cop_ref_2");
-      rightCOP.setFrame (myBodies.get ("calcn_r"));
-      myMech.add (rightCOP);
-      list.add (rightCOP);
-      motcon.addCOPReference (rightCOP);
-      addForceProbes (motcon, list, myForces);
+      //ArrayList<FrameMarker> list = new ArrayList<FrameMarker> ();
+      //FrameMarker leftCOP = new FrameMarker ("cop_ref_1");
+      //leftCOP.setFrame (myBodies.get ("calcn_l"));
+      //myMech.add (leftCOP);
+      //list.add (leftCOP);
+      //motcon.addCOPReference (leftCOP);
+      //FrameMarker rightCOP = new FrameMarker ("cop_ref_2");
+      //rightCOP.setFrame (myBodies.get ("calcn_r"));
+      //myMech.add (rightCOP);
+      //list.add (rightCOP);
+      //motcon.addCOPReference (rightCOP);
+      //addForceProbes (motcon, list, myForces);
+   }
+
+   /**
+    * Adds frame exciters for all specified bodies in the model to account for
+    * ground reaction forces.
+    * 
+    * @param controller
+    */
+   private void defineFrameExciters (MotionTargetController controller) {
+      Frame calcnR = (Frame)myBodies.get("calcn_r");
+      Frame calcnL = (Frame)myBodies.get ("calcn_l");
+      double maxForce = myForces.getMaxForce();
+      double maxMom = myForces.getMaxMoment();
+      createAndAddFrameExciters(controller,myMech, calcnR, maxForce, maxMom);
+      createAndAddFrameExciters(controller,myMech, calcnL, maxForce, maxMom);
    }
 
    /**

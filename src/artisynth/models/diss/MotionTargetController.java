@@ -168,7 +168,7 @@ public class MotionTargetController extends TrackingController {
       setMech (myMech);
       setName (myName);
       initializeWriter (fileName);
-      initializeCOPRenderer (scale);
+      //initializeCOPRenderer (scale);
       this.initComponents ();
    }
 

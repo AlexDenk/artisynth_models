@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import maspack.matrix.*;
+
 /**
  * @author Alexander Denk Copyright (c) 2023, by the Author: Alexander Denk
  * (UDE) University of Duisburg-Essen Chair of Mechanics and Robotics
@@ -24,6 +25,9 @@ public class MOTReader {
       protected ArrayList<String> myForceLabels = new ArrayList<String> ();
       protected ArrayList<Double> myFrameTimes = new ArrayList<Double> ();
       protected int myColumns;
+      
+      public ForceData () {
+      }
 
       public void addData (double time, Collection<Vector3d> forces) {
          if (numLabels () == 0) {
@@ -80,8 +84,17 @@ public class MOTReader {
       public double getFrameTime (int frame) {
          return myFrameTimes.get (frame);
       }
-      
-      public int numColumns() {
+
+      public double getMaxForce () {
+         
+         return 0;
+      }
+
+      public double getMaxMoment () {
+         return 0;
+      }
+
+      public int numColumns () {
          return myColumns;
       }
 
@@ -92,16 +105,13 @@ public class MOTReader {
       public int numFrames () {
          return myFrameTimes.size ();
       }
-      
-      public void setColumns(int size) {
+
+      public void setColumns (int size) {
          myColumns = size;
       }
 
       public void setForceLabels (ArrayList<String> labels) {
          myForceLabels = labels;
-      }
-
-      public ForceData () {
       }
    }
 

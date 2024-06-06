@@ -54,6 +54,7 @@ public class ContactMonitor extends MonitorBase {
    // Map to match behaviors with responses
    HashMap<CollisionResponse,CollisionBehavior> collisionMap =
       new HashMap<CollisionResponse,CollisionBehavior> ();
+   // Dummy vector to save contact forces during collision responses
    Vector3d myAccumulatedContact = new Vector3d (0, 0, 0);
 
    // ----------------------------Nested Classes ------------------------------
@@ -184,20 +185,6 @@ public class ContactMonitor extends MonitorBase {
             collisionsActive.add (cr);
          }
       }
-   }
-
-   /**
-    * Sums up all found contact forces in the contact data
-    * 
-    * @param cdata
-    * {@link ContactData} list
-    */
-   private Vector3d calculateContactForces (List<ContactData> cdata) {
-      Vector3d sum = new Vector3d (0, 0, 0);
-      cdata.forEach (cd -> {
-         sum.add (cd.getContactForce ());
-      });
-      return sum;
    }
 
    /**

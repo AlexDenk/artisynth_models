@@ -54,6 +54,7 @@ public class ContactMonitor extends MonitorBase {
    // Map to match behaviors with responses
    HashMap<CollisionResponse,CollisionBehavior> collisionMap =
       new HashMap<CollisionResponse,CollisionBehavior> ();
+   Vector3d myAccumulatedContact = new Vector3d();
 
    // ----------------------------Nested Classes ------------------------------
 
@@ -62,8 +63,6 @@ public class ContactMonitor extends MonitorBase {
       double myStiffness;
       double myDamping;
       List<CollisionBehavior> matches;
-      HashMap<CollisionBehavior,Vector3d> myAccumulatedContact =
-         new HashMap<CollisionBehavior,Vector3d> ();
 
       public CustomContactForce () {
          new CustomContactForce (0.1, 0.1);
@@ -82,10 +81,37 @@ public class ContactMonitor extends MonitorBase {
          double[] fres, double dist, ContactPoint cpnt0, ContactPoint cpnt1,
          Vector3d normal, double contactArea, int flags) {
 
-         fres[0] = dist * myStiffness; // contact force
-         fres[1] = 1 / myStiffness; // compliance as inverse of stiffness
-         fres[2] = myDamping; // damping
+         // Compute response
+         fres[0] = dist * myStiffness;
+         fres[1] = 1 / myStiffness;
+         fres[2] = myDamping;
 
+         // Check for new interface with already existing entries in the buf
+        /* if (myHostName == null
+         && !myAccumulatedContact.equals (new Vector3d (0, 0, 0))) {
+            Vector3d ref = getReferenceForce ();
+            if (ref != null) {
+               if (!myAccumulatedContact.epsilonEquals (ref, 10)) {
+                  // update compliance accordingly
+                  this.myStiffness = myStiffness * 1.01;
+                  // all contact forces of all points need to be updated and
+                  // summed again
+                  // but distance is apparently the same for each contact
+                  // interface
+                  // which would mean forces are equal and could be scaled //
+                  // }
+               }      
+            }
+            myAccumulatedContact.setZero ();
+         }
+         CollisionBehavior host = getHost ();
+         myHostName = host.getName ();
+         Vector3d force = new Vector3d (0, 0, 0);
+         force.scaledAdd (fres[0], normal);
+         myAccumulatedContact.add (force);*/
+      }
+
+      private CollisionBehavior getHost () {
          CollisionBehavior host = (CollisionBehavior)this.myPropHost;
          matches =
             behaviors
@@ -94,33 +120,22 @@ public class ContactMonitor extends MonitorBase {
 
          assert matches.size () == 1 : "Error: ambiguous collision behaviors"
          + " for current response computation.";
+         return host;
+      }
 
-         // host name wird immer null wenn neues contact interface
-         if (myHostName == null && myAccumulatedContact.get (host) != null) {
-            Vector3d force = myAccumulatedContact.get (host);
-            // which time take data from?
-            int frame = myForces.getFrame (0);
-            // which side are we at?
-            // Should be contained on the hostname. Contains an l or r in case
-            // of left or right?
-            String side = "";
-            Vector3d refForce = myForces.getData (frame, side + " GRF");
-
-            if (!force.epsilonEquals (refForce, 10)) {
-               // update compliance accordingly.
-               this.myStiffness = myStiffness * 1.01;
-               // all contact forces of all points need to be updated and summed
-               // again
-               // but distance is apparently the same for each contact interface
-               // which would mean forces are equal and could be scaled
-               // }
-
-            }
-            Vector3d force1 = new Vector3d (0, 0, 0);
-            force1.scaledAdd (fres[0], normal);
-            myAccumulatedContact.merge (host, force1, Vector3d::add);
-            myHostName = host.getName ();
+      private Vector3d getReferenceForce () {
+         int frame = myForces.getFrame (mySystemTimes[0]) + 1;
+         String side;
+         Vector3d refForce = null;
+         if (myHostName.contains ("_r")) {
+            side = "Right";
+            refForce = myForces.getData (frame, side + " GRF");
          }
+         else if (myHostName.contains ("_l")) {
+            side = "Left";
+            refForce = myForces.getData (frame, side + " GRF");
+         }
+         return refForce;
       }
    }
 
@@ -184,7 +199,6 @@ public class ContactMonitor extends MonitorBase {
 
          }
       });
-
       writeContactToFile (t0);
    }
 

@@ -54,6 +54,7 @@ public class ContactMonitor extends MonitorBase {
    // Map to match behaviors with responses
    HashMap<CollisionResponse,CollisionBehavior> collisionMap =
       new HashMap<CollisionResponse,CollisionBehavior> ();
+   Vector3d myAccumulatedContact = new Vector3d (0, 0, 0);
 
    // ----------------------------Nested Classes ------------------------------
 
@@ -62,8 +63,6 @@ public class ContactMonitor extends MonitorBase {
       double myStiffness;
       double myDamping;
       List<CollisionBehavior> matches;
-      HashMap<CollisionBehavior,Vector3d> myAccumulatedContact =
-         new HashMap<CollisionBehavior,Vector3d> ();
 
       public CustomContactForce () {
          new CustomContactForce (0.1, 0.1);
@@ -96,28 +95,26 @@ public class ContactMonitor extends MonitorBase {
          + " for current response computation.";
 
          // target new contact interfaces
-         if (myHostName == null && myAccumulatedContact.get (host) != null) {
-            Vector3d force = myAccumulatedContact.get (host);
-            // which time take data from?
-            int frame = myForces.getFrame (0);
-            // which side are we at?
-            // Should be contained on the hostname. Contains an l or r in case
-            // of left or right?
-            String side = "";
-            Vector3d refForce = myForces.getData (frame, side + " GRF");
-
-            if (!force.epsilonEquals (refForce, 10)) {
-               this.myStiffness = myStiffness * 1.01;
-               // all contact forces of all points need to be updated and summed
-               // again
-               // but distance is apparently the same for each contact interface
-               // which would mean forces are equal and could be scaled
-               // }
-
+         if (myHostName == null
+         && !myAccumulatedContact.equals (new Vector3d (0, 0, 0))) {
+            int frame = myForces.getFrame (mySystemTimes[0] + 1);
+            String side = null;
+            if (host.getName ().contains ("_r")) {
+               side = "Right";
             }
-            Vector3d force1 = new Vector3d (0, 0, 0);
-            force1.scaledAdd (fres[0], normal);
-            myAccumulatedContact.merge (host, force1, Vector3d::add);
+            else if (host.getName ().contains ("_l")) {
+               side = "Left";
+            }
+            if (side != null) {
+               Vector3d ref = myForces.getData (frame, side + " GRF");
+               if (!myAccumulatedContact.epsilonEquals (ref, 1)) {
+                  this.myStiffness = myStiffness * 1.01;
+                  fres[0] = dist * myStiffness;
+               }
+            }
+            Vector3d force = new Vector3d (0, 0, 0);
+            force.scaledAdd (fres[0], normal);
+            myAccumulatedContact.add (force);
             myHostName = host.getName ();
          }
       }

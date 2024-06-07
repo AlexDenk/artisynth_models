@@ -11,10 +11,7 @@ import maspack.matrix.RigidTransform3d;
 import maspack.util.UnitTest;
 
 public class MotionTargetControllerTest extends UnitTest {
-
-   public void testSetFrame () {
-   }
-
+   
    public void testIsPointInside () {
       RigidBody box = RigidBody.createBox ("box", 1, 1, 1, 100);
       Point3d ref = new Point3d (box.getPosition ());
@@ -96,10 +93,8 @@ public class MotionTargetControllerTest extends UnitTest {
       }
    }
 
-   // add other tests you want to be performed
 
    public void test () {
-      testSetFrame ();
       testIsPointInside ();
    }
 

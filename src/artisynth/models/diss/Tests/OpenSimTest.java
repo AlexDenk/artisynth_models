@@ -65,6 +65,7 @@ import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
 import maspack.matrix.AxisAlignedRotation;
+import maspack.matrix.Matrix3dBase;
 import maspack.matrix.Point3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
@@ -237,14 +238,14 @@ public class OpenSimTest extends RootModel {
       controller.getTargetPoints ().forEach (c -> {
          RenderProps.setPointColor (c, Color.WHITE);
       });
-      FrameMarker mkrL = (FrameMarker)myMech.get ("cop_ref_1");
-      RenderProps
-         .setSphericalPoints (
-            mkrL, 0.01 * scale, Color.GRAY.darker ().darker ());
-      FrameMarker mkrR = (FrameMarker)myMech.get ("cop_ref_2");
-      RenderProps
-         .setSphericalPoints (
-            mkrR, 0.01 * scale, Color.GRAY.darker ().darker ());
+      // FrameMarker mkrL = (FrameMarker)myMech.get ("cop_ref_1");
+      // RenderProps
+      // .setSphericalPoints (
+      // mkrL, 0.01 * scale, Color.GRAY.darker ().darker ());
+      // FrameMarker mkrR = (FrameMarker)myMech.get ("cop_ref_2");
+      // RenderProps
+      // .setSphericalPoints (
+      // mkrR, 0.01 * scale, Color.GRAY.darker ().darker ());
    }
 
    /**
@@ -395,11 +396,10 @@ public class OpenSimTest extends RootModel {
     * @param forces
     * {@link ForceTarget} object containing the experimental forces
     */
-   private void addForceProbe (
-      MotionTargetController motcon, ForceData forces, Frame frame, String side) {
+   private void addForceProbe (ForceData forces, Frame frame, String side) {
       NumericInputProbe grf = new NumericInputProbe ();
-      grf.setModel (myMech);   
-      grf.setName (frame.getName() + " ground reaction forces");
+      grf.setModel (myMech);
+      grf.setName (frame.getName () + " ground reaction forces");
       double duration =
          forces.getFrameTime (forces.numFrames () - 1)
          - forces.getFrameTime (0);
@@ -407,20 +407,54 @@ public class OpenSimTest extends RootModel {
       Property[] props = new Property[1];
       props[0] = frame.getProperty ("externalForce");
       grf.setInputProperties (props);
-      
+
+      Vector3d framePos = frame.getPosition ();
       for (int i = 0; i < forces.numFrames (); i++) {
-         VectorNd force = new VectorNd (3);
+         VectorNd force = new VectorNd (6);
          double time = forces.getFrameTime (i);
          force.add (0, forces.getData (i, side + " GRF").x);
          force.add (1, forces.getData (i, side + " GRF").y);
          force.add (2, forces.getData (i, side + " GRF").z);
-         
+         // calculate moment arm from cop to frame pos
+         Vector3d cop = forces.getData (i, side + " COP");
+         Vector3d loc = new Vector3d (0, 0, 0);
+         loc.sub (framePos, cop);
+         // calculate resulting moment at calcn
+         Vector3d moment = new Vector3d (0, 0, 0);
+         moment.cross (loc, forces.getData (i, side + " GRF"));
+         moment.add (forces.getData (i, side + " GRM"));
+         // add resulting moment
+         force.add (3, moment.x);
+         force.add (4, moment.y);
+         force.add (5, moment.z);
          grf.addData (time, force);
       }
       addInputProbe (grf);
-      motcon.addInputProbe (grf);
    }
-   
+
+   /**
+    * Adds frame exciters for all specified bodies in the model to account for
+    * ground reaction forces. Adds also the input probes for ground reaction
+    * forces
+    * 
+    * @param controller
+    */
+   private void addGroundReactionForces (
+      MotionTargetController controller, ForceData forces) {
+      RigidBody calcnR = myBodies.get ("calcn_r");
+      double maxForceRight = myForces.getMaxForce ("Right GRF");
+      double maxMomRight = myForces.getMaxMoment ("Right GRM");
+      addForceProbe (forces, calcnR, "Right");
+      createAndAddFrameExciters (
+         controller, myMech, calcnR, maxForceRight, maxMomRight);
+      RigidBody calcnL = myBodies.get ("calcn_l");
+      double maxForceLeft = myForces.getMaxForce ("Left GRF");
+      double maxMomLeft = myForces.getMaxMoment ("Left GRM");
+      addForceProbe (forces, calcnL, "Left");
+      createAndAddFrameExciters (
+         controller, myMech, calcnL, maxForceLeft, maxMomLeft);
+   }
+
    /**
     * Defines MotionTargets of the {@link MotionTargetTerm} of the
     * {@link MotionTargetController}.
@@ -462,7 +496,8 @@ public class OpenSimTest extends RootModel {
     * @param motion
     * {@link MarkerMotionData}
     */
-   private void addNumOutputProbesAndPanel (MarkerMotionData motion) {
+   private void addNumOutputProbesAndPanel (
+      MarkerMotionData motion, MotionTargetController controller) {
       // Define a control panel and add a widget for each output property
       ControlPanel panel = new ControlPanel ("Joint Coordinates");
       // Define Output Probes
@@ -472,72 +507,77 @@ public class OpenSimTest extends RootModel {
       myJoints.forEach (jt -> {
          switch (jt.getName ()) {
             case "ground_pelvis":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "pelvis_tilt", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "pelvis_list", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "pelvis_rotation", start, stop, step);
-               createProbeandPanel (jt, panel, "pelvis_tx", start, stop, step);
-               createProbeandPanel (jt, panel, "pelvis_ty", start, stop, step);
-               createProbeandPanel (jt, panel, "pelvis_tz", start, stop, step);
+               createProbeAndPanel (jt, panel, "pelvis_tx", start, stop, step);
+               createProbeAndPanel (jt, panel, "pelvis_ty", start, stop, step);
+               createProbeAndPanel (jt, panel, "pelvis_tz", start, stop, step);
                break;
             case "hip_r":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "hip_flexion_r", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "hip_adduction_r", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "hip_rotation_r", start, stop, step);
                break;
             case "knee_r":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "knee_angle_r", start, stop, step);
                break;
             case "ankle_r":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "ankle_angle_r", start, stop, step);
                break;
             case "subtalar_r":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "subtalar_angle_r", start, stop, step);
                break;
             case "mtp_r":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "mtp_angle_r", start, stop, step);
                break;
             case "hip_l":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "hip_flexion_l", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "hip_adduction_l", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "hip_rotation_l", start, stop, step);
                break;
             case "knee_l":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "knee_angle_l", start, stop, step);
                break;
             case "ankle_l":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "ankle_angle_l", start, stop, step);
                break;
             case "subtalar_l":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "subtalar_angle_l", start, stop, step);
                break;
             case "mtp_l":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "mtp_angle_l", start, stop, step);
                break;
             case "back":
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "lumbar_extension", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "lumbar_bending", start, stop, step);
-               createProbeandPanel (
+               createProbeAndPanel (
                   jt, panel, "lumbar_rotation", start, stop, step);
                break;
+         }
+      });
+      controller.getExciters ().forEach (e -> {
+         if (e.getName ().contains ("calcn_")) {
+            //createProbeAndPanel (e, null, "maxforce", start, stop, step);
          }
       });
       addControlPanel (panel);
@@ -585,7 +625,7 @@ public class OpenSimTest extends RootModel {
          expMotion.setActive (true);
       }
    }
-   
+
    /**
     * Creates a complete set of FrameExciters for a given frame and adds them to
     * a MechModel and a tracking controller.
@@ -669,14 +709,16 @@ public class OpenSimTest extends RootModel {
     * @param step
     * Output interval of the probe
     */
-   private void createProbeandPanel (
-      JointBase jt, ControlPanel panel, String prop, double start, double stop,
+   private void createProbeAndPanel (
+      ModelComponent comp, ControlPanel panel, String prop, double start, double stop,
       double step) {
-      panel.addWidget (jt, prop);
+      if (panel != null) {
+         panel.addWidget (comp, prop);
+      }
       String filepath =
          PathFinder.getSourceRelativePath (this, "/" + prop + ".txt");
       NumericOutputProbe probe =
-         new NumericOutputProbe (jt, prop, filepath, step);
+         new NumericOutputProbe (comp, prop, filepath, step);
       probe.setName (prop);
       probe.setStartStopTimes (start, stop);
       addOutputProbe (probe);
@@ -701,59 +743,37 @@ public class OpenSimTest extends RootModel {
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     * @throws IOException
     */
-   private void defineControllerAndProps (
+   private MotionTargetController defineControllerAndProps (
       ForceData forces, MarkerMotionData motion, MarkerMapping map, String name,
       int scale)
       throws IOException {
       MotionTargetController motcon =
          new MotionTargetController (myMech, "Motion controller", name, scale);
-      motcon.addForceData (forces);
-      motcon.addMotionData (motion, map);
+      //motcon.addForceData (forces);
+      //motcon.addMotionData (motion, map);
       motcon.addL2RegularizationTerm (1);
       // Calculate the duration in seconds from the number of frames
       double duration =
          motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
       motcon.setProbeDuration (duration);
-      //motcon.setComputeIncrementally (true);
-      motcon.setUseKKTFactorization (true);
+      motcon.setComputeIncrementally (true);
+      //motcon.setUseKKTFactorization (true);
       motcon.setDebug (false);
-      addMotionTargets (motcon, map, scale);
-      addGroundReactionForces(motcon, forces);
-      motcon.createProbesAndPanel (this);
-      addController (motcon);
-      addProbesToMotionTargets (motcon, map, motion);
-      
+      return motcon;
       // Define FrameMarkers for the force input probes
-      //ArrayList<FrameMarker> list = new ArrayList<FrameMarker> ();
-      //FrameMarker leftCOP = new FrameMarker ("cop_ref_1");
-      //leftCOP.setFrame (myBodies.get ("calcn_l"));
-      //myMech.add (leftCOP);
-      //list.add (leftCOP);
-      //motcon.addCOPReference (leftCOP);
-      //FrameMarker rightCOP = new FrameMarker ("cop_ref_2");
-      //rightCOP.setFrame (myBodies.get ("calcn_r"));
-      //myMech.add (rightCOP);
-      //list.add (rightCOP);
-      //motcon.addCOPReference (rightCOP);
-      //addForceProbes (motcon, list, myForces);
-   }
-
-   /**
-    * Adds frame exciters for all specified bodies in the model to account for
-    * ground reaction forces.
-    * 
-    * @param controller
-    */
-   private void addGroundReactionForces (MotionTargetController controller, ForceData forces) {
-      Frame calcnR = (Frame)myBodies.get("calcn_r");
-      Frame calcnL = (Frame)myBodies.get ("calcn_l");
-      double maxForce = myForces.getMaxForce("Right GRF");
-      double maxMom = myForces.getMaxMoment();
-      addForceProbe(controller, forces, calcnR, "Right");
-      createAndAddFrameExciters(controller,myMech, calcnR, maxForce, maxMom);   
-      addForceProbe(controller, forces, calcnL, "Left");
-      createAndAddFrameExciters(controller,myMech, calcnL, maxForce, maxMom);
+      // ArrayList<FrameMarker> list = new ArrayList<FrameMarker> ();
+      // FrameMarker leftCOP = new FrameMarker ("cop_ref_1");
+      // leftCOP.setFrame (myBodies.get ("calcn_l"));
+      // myMech.add (leftCOP);
+      // list.add (leftCOP);
+      // motcon.addCOPReference (leftCOP);
+      // FrameMarker rightCOP = new FrameMarker ("cop_ref_2");
+      // rightCOP.setFrame (myBodies.get ("calcn_r"));
+      // myMech.add (rightCOP);
+      // list.add (rightCOP);
+      // motcon.addCOPReference (rightCOP);
+      // addForceProbes (motcon, list, myForces);
    }
 
    /**
@@ -772,13 +792,19 @@ public class OpenSimTest extends RootModel {
       myForces = readMOTFile (name);
       myMap = getMapFromFile (name);
       // Generate and populate motion and force targets
-      defineControllerAndProps (myForces, myMotion, myMap, name, scale);
+      MotionTargetController controller =
+         defineControllerAndProps (myForces, myMotion, myMap, name, scale);
+      addMotionTargets (controller, myMap, scale);
+      controller.createProbesAndPanel (this);
+      addController (controller);
+      addProbesToMotionTargets (controller, myMap, myMotion);
+      addGroundReactionForces (controller, myForces);
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
       // within the probe itself
       // TODO: Generate an autosave/write method for all output probes
       // Define output probes for each joint angle
-      addNumOutputProbesAndPanel (myMotion);
+      addNumOutputProbesAndPanel (myMotion, controller);
    }
 
    /**

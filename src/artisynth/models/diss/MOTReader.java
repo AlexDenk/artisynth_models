@@ -88,20 +88,34 @@ public class MOTReader {
 
       public double getMaxForce (String label) {
          int num = getForceLabels ().indexOf (label);
-         ArrayList<Vector3d> force = this.getData (num);
-         double norm = 0.0;
-         for (Vector3d f : force) {
-            double max = Double.MIN_VALUE;
-            norm = f.norm ();
-            if (norm > max) {
-               max = norm;
+         ArrayList<Vector3d> forces = new ArrayList<Vector3d> ();
+         myFrameTimes.forEach (t -> {
+            Vector3d force = this.getData (this.getFrame (t), num);
+            forces.add (force);
+         });
+         double max = Double.MIN_VALUE;
+         for (Vector3d f : forces) {
+            if (f.maxElement () > max) {
+               max = f.maxElement ();
             }
          }
          return max;
       }
 
-      public double getMaxMoment () {
-         return 0;
+      public double getMaxMoment (String label) {
+         int num = getForceLabels ().indexOf (label);
+         ArrayList<Vector3d> moments = new ArrayList<Vector3d> ();
+         myFrameTimes.forEach (t -> {
+            Vector3d moment = this.getData (this.getFrame (t), num);
+            moments.add (moment);
+         });
+         double max = Double.MIN_VALUE;
+         for (Vector3d m : moments) {
+            if (m.maxElement () > max) {
+               max = m.maxElement ();
+            }
+         }
+         return max;
       }
 
       public int numColumns () {

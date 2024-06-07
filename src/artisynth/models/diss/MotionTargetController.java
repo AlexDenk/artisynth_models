@@ -195,14 +195,14 @@ public class MotionTargetController extends TrackingController {
          e.printStackTrace ();
       }
 
-      ForceTargetTerm forceTerm = getForceTargetTerm ();
-      if (forceTerm != null) {
-         forceTerm.setEnabled (false);
-         hasForceTargets = true;
-      }
+      //orceTargetTerm forceTerm = getForceTargetTerm ();
+      //if (forceTerm != null) {
+      //   forceTerm.setEnabled (false);
+      //   hasForceTargets = true;
+      //}
 
-      assert probeList.size () == copRefList
-         .size () : "Error: Dimension mismatch between probes and COPs";
+      //assert probeList.size () == copRefList
+      //   .size () : "Error: Dimension mismatch between probes and COPs";
 
       if (isWriterActive) {
          writer.close ();
@@ -225,21 +225,21 @@ public class MotionTargetController extends TrackingController {
          .append ("PROJECT COPs FOR FORCE APPLICATION").append ("\n");
       message.append (header.toString ());
 
-      ArrayList<Point3d> cops = getCurrentCOPs (t1, 3.0, probeList);
-      assert cops.size () <= copRefList
-         .size () : "Error: Dimension mismatch between listed and found COPs";
+      //ArrayList<Point3d> cops = getCurrentCOPs (t1, 3.0, probeList);
+      //assert cops.size () <= copRefList
+      //   .size () : "Error: Dimension mismatch between listed and found COPs";
 
-      for (int i = 0; i < cops.size (); i++) {
-         Frame frame = findClosestBody (t1, cops.get (i));
-         FrameMarker copRef = (FrameMarker)copRefList.get (i);
-         try {
+      //for (int i = 0; i < cops.size (); i++) {
+      //   Frame frame = findClosestBody (t1, cops.get (i));
+      //   FrameMarker copRef = (FrameMarker)copRefList.get (i);
+      //   try {
             // projectToFrameVertex (frame, copRef, cops.get (i), 0.005);
-            projectToFrameSurface (frame, copRef, cops.get (i));
-         }
-         catch (Exception e) {
-            e.printStackTrace ();
-         }
-      }
+      //      projectToFrameSurface (frame, copRef, cops.get (i));
+      //   }
+      //   catch (Exception e) {
+      //      e.printStackTrace ();
+      //   }
+      //}
 
       message
          .append ("\n").append ("PROCEED WITH INVERSE OPTIMIZATION")

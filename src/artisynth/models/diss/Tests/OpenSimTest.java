@@ -411,9 +411,10 @@ public class OpenSimTest extends RootModel {
       for (int i = 0; i < forces.numFrames (); i++) {
          VectorNd force = new VectorNd (3);
          double time = forces.getFrameTime (i);
-         force.add (0, forces.getData (i, side).x);
-         force.add (1, forces.getData (i, side).y);
-         force.add (2, forces.getData (i, side).z);
+         force.add (0, forces.getData (i, side + " GRF").x);
+         force.add (1, forces.getData (i, side + " GRF").y);
+         force.add (2, forces.getData (i, side + " GRF").z);
+         
          grf.addData (time, force);
       }
       addInputProbe (grf);
@@ -605,7 +606,6 @@ public class OpenSimTest extends RootModel {
    private FrameExciter[] createAndAddFrameExciters (
       MotionTargetController ctrl, MechModel mech, Frame frame, double maxForce,
       double maxMoment) {
-
       FrameExciter[] exs = new FrameExciter[6];
       exs[0] = new FrameExciter (null, frame, WrenchComponent.FX, maxForce);
       exs[1] = new FrameExciter (null, frame, WrenchComponent.FY, maxForce);
@@ -643,15 +643,12 @@ public class OpenSimTest extends RootModel {
     */
    private void createCollision (
       RigidBody bodyA, RigidBody bodyB, double comp, double damp) {
-      // Add a collision behavior for each connection.
       CollisionBehavior behavior;
       behavior = myMech.setCollisionBehavior (bodyA, bodyB, true);
-      // Set compliant contact properties
       behavior.setCompliance (comp);
       behavior.setDamping (damp);
       // Additional method to reduce overconstrained contact.
       behavior.setBilateralVertexContact (false);
-      // Add a collision response for the contact history
       myMech.setCollisionResponse (bodyA, bodyB);
    }
 
@@ -675,18 +672,13 @@ public class OpenSimTest extends RootModel {
    private void createProbeandPanel (
       JointBase jt, ControlPanel panel, String prop, double start, double stop,
       double step) {
-      // Add widget for each joint property
       panel.addWidget (jt, prop);
-      // Define, where the NumOutProbe is written to.
       String filepath =
          PathFinder.getSourceRelativePath (this, "/" + prop + ".txt");
-      // Define NumericOutPutProbe
       NumericOutputProbe probe =
          new NumericOutputProbe (jt, prop, filepath, step);
-      // Set probe properties
       probe.setName (prop);
       probe.setStartStopTimes (start, stop);
-      // Add the probe to the controller.
       addOutputProbe (probe);
    }
 
@@ -727,7 +719,7 @@ public class OpenSimTest extends RootModel {
       motcon.setUseKKTFactorization (true);
       motcon.setDebug (false);
       addMotionTargets (motcon, map, scale);
-      addGroundReactionForces(motcon);
+      addGroundReactionForces(motcon, forces);
       motcon.createProbesAndPanel (this);
       addController (motcon);
       addProbesToMotionTargets (motcon, map, motion);
@@ -758,9 +750,9 @@ public class OpenSimTest extends RootModel {
       Frame calcnL = (Frame)myBodies.get ("calcn_l");
       double maxForce = myForces.getMaxForce();
       double maxMom = myForces.getMaxMoment();
-      addForceProbe(controller, forces, calcnR, "Right GRF");
+      addForceProbe(controller, forces, calcnR, "Right");
       createAndAddFrameExciters(controller,myMech, calcnR, maxForce, maxMom);   
-      addForceProbe(controller, forces, calcnL, "Left GRF");
+      addForceProbe(controller, forces, calcnL, "Left");
       createAndAddFrameExciters(controller,myMech, calcnL, maxForce, maxMom);
    }
 
@@ -1043,7 +1035,6 @@ public class OpenSimTest extends RootModel {
     */
    @SuppressWarnings("unchecked")
    private RenderableComponentList<FrameMarker> getMarkerFromOsim () {
-      // Store model markers
       myMarkers =
          (RenderableComponentList<FrameMarker>)myMech.get ("markerset");
       // Overwrite attachments for toe markers, since attached to calcanei
@@ -1088,19 +1079,13 @@ public class OpenSimTest extends RootModel {
     */
    @SuppressWarnings("unchecked")
    private List<MultiPointMuscle> getMusclesFromOsim () {
-      // Store force components temporally
       RenderableComponentList<ModelComponent> forces =
          (RenderableComponentList<ModelComponent>)myMech.get ("forceset");
-      // forces is itself a multicomponent structure and will be split up in
-      // its forces and the corresponding attachment points
       forces.forEach (frc -> {
-         // Address all children of the structure
          frc.getChildren ().forEachRemaining (obj -> {
-            // Access the attachment points, currently does nothing
             if (obj instanceof PointList) {
                return;
             }
-            // Access the muscles (that also contain the attachments)
             if (obj instanceof MultiPointMuscle) {
                myMuscles.add ((MultiPointMuscle)obj);
             }
@@ -1116,15 +1101,10 @@ public class OpenSimTest extends RootModel {
     * @return
     */
    private String getNameFromFileDiaglog (JFileChooser fc) {
-      // Generate working directory defined by user input.
       fc.setCurrentDirectory (ArtisynthPath.getSrcRelativeFile (this, myName));
-      // Set the file dialog to accept directories only
       fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY);
-      // Set dialog title to be more specific
       fc.setDialogTitle ("Please select a working directory.");
-      // Show file dialog
       fc.showOpenDialog (null);
-      // Set name specifier
       return fc.getSelectedFile ().getName ();
    }
 
@@ -1300,21 +1280,17 @@ public class OpenSimTest extends RootModel {
     * @throws
     */
    private void setContactProps (CollisionManager coll) throws IOException {
-      // Enable reduce overconstrained contact.
       coll.setReduceConstraints (true);
-      // Define compliant contact per joint in the OpenSim Model
       myJoints.forEach (jt -> {
          if (jt.getName ().contains ("pelvis")) {
             return;
          }
-         // Access the respective bodies, that are connected to each joint.
          RigidBody bodyA = (RigidBody)jt.getBodyA ();
          RigidBody bodyB = (RigidBody)jt.getBodyB ();
          // Calculate compliant contact properties
          double comp = 0.1;
          double mass = bodyA.getMass () + bodyB.getMass ();
          double damp = 2 * 1 * Math.sqrt (1 / comp * mass);
-         // Set collision behavior and response
          createCollision (bodyA, bodyB, comp, damp);
       });
       // Initialize the contact monitor to handle all individual collision
@@ -1322,10 +1298,8 @@ public class OpenSimTest extends RootModel {
       ContactMonitor contMonitor =
          new ContactMonitor (coll.responses (), myName);
       contMonitor.setName ("Contact monitor");
-      // Enable FullReportMode
       contMonitor.setUseFullReport (true);
       addMonitor (contMonitor);
-      // TODO: Ground collision mesh
    }
 
    /**
@@ -1354,14 +1328,11 @@ public class OpenSimTest extends RootModel {
       solver.setIntegrator (Integrator.Trapezoidal);
       // Use global stiffness, since more accurate and stable
       solver.setStabilization (PosStabilization.GlobalStiffness);
-      // Activate adaptive stepping
       setAdaptiveStepping (true);
       setMaxStepSize (0.0017);
       // Define scale (mm = 1000, or m = 1)
       myScale = 1;
-      // Define Gravity
       myMech.setGravity (new Vector3d (0, -9.81, 0));
-      // Throw warning message in case of zero gravity
       if (myMech.getGravity ().equals (new Vector3d (0, 0, 0))) {
          JFrame frame = new JFrame ("Warning");
          frame.add (new JLabel ("Warning: Zero gravitation!", JLabel.CENTER));

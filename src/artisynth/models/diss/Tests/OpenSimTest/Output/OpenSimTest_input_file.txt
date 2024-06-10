@@ -33827,8 +33827,8 @@ CONTROLLER INFORMATION
 Use motion targets : true
 Use force targets: false
 Use regularization: true
-Use KKT Factorization: false
-Incremental computation: true
+Use KKT Factorization: true
+Incremental computation: false
 Normalize H: false
 Use timestep scaling: false
 Integrator: ConstrainedBackwardEuler

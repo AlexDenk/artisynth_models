@@ -33,6 +33,7 @@ import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
 import artisynth.core.mechmodels.CollisionBehaviorList;
 import artisynth.core.mechmodels.CollisionManager;
+import artisynth.core.mechmodels.ForceEffector;
 import artisynth.core.mechmodels.Frame;
 import artisynth.core.mechmodels.FrameMarker;
 import artisynth.core.mechmodels.JointBase;
@@ -45,6 +46,7 @@ import artisynth.core.mechmodels.MultiPointMuscle;
 import artisynth.core.mechmodels.PlanarConnector;
 import artisynth.core.mechmodels.PointList;
 import artisynth.core.mechmodels.RigidBody;
+import artisynth.core.modelbase.ComponentListView;
 import artisynth.core.modelbase.ModelComponent;
 import artisynth.core.modelbase.RenderableComponentList;
 import artisynth.core.opensim.OpenSimParser;
@@ -138,7 +140,7 @@ public class OpenSimTest extends RootModel {
       collMan.setName ("Collision manager");
       setContactProps (collMan);
       defineIOProbes (myName, myScale);
-      setRenderProps (collMan, myScale);
+      setRenderProps (collMan, myScale); 
       writeInputToFile (myName);
    }
 
@@ -319,6 +321,7 @@ public class OpenSimTest extends RootModel {
       getMainViewer ().setOrthographicView (true);
       getMainViewer ().setRotationMode (RotationMode.CONTINUOUS);
       setDefaultViewOrientation (AxisAlignedRotation.X_Y);
+      mergeAllControlPanels (true);
    }
 
    /**
@@ -417,11 +420,11 @@ public class OpenSimTest extends RootModel {
          force.add (2, forces.getData (i, side + " GRF").z);
          // calculate moment arm from cop to frame pos
          Vector3d cop = forces.getData (i, side + " COP");
-         Vector3d loc = new Vector3d (0, 0, 0);
-         loc.sub (framePos, cop);
+         Vector3d arm = new Vector3d (0, 0, 0);
+         arm.sub (framePos, cop);
          // calculate resulting moment at calcn
          Vector3d moment = new Vector3d (0, 0, 0);
-         moment.cross (loc, forces.getData (i, side + " GRF"));
+         moment.cross (arm, forces.getData (i, side + " GRF"));
          moment.add (forces.getData (i, side + " GRM"));
          // add resulting moment
          force.add (3, moment.x);
@@ -490,8 +493,7 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Creates an output probe and fills a control panel for each DOF of each
-    * joint in the model.
+    * Creates output probes for and fills a control panel if specified
     * 
     * @param motion
     * {@link MarkerMotionData}
@@ -576,8 +578,8 @@ public class OpenSimTest extends RootModel {
          }
       });
       controller.getExciters ().forEach (e -> {
-         if (e.getName ().contains ("calcn_")) {
-            //createProbeAndPanel (e, null, "maxforce", start, stop, step);
+         if (e instanceof FrameExciter) {
+            createProbeAndPanel (e, null, "excitation", start, stop, step);
          }
       });
       addControlPanel (panel);
@@ -624,6 +626,35 @@ public class OpenSimTest extends RootModel {
          }
          expMotion.setActive (true);
       }
+   }
+
+   /**
+    * Adjusts the export paths for the default {@link NumericOutputProbe}s of
+    * the {@link MotionTargetController} "tracked positions", "source positions"
+    * and "computed excitations" to the current working directory.
+    */
+   private void adjustDefaultProbePaths () {
+      NumericOutputProbe track =
+         (NumericOutputProbe)getOutputProbes ().get ("tracked positions");
+      String path =
+         PathFinder
+            .getSourceRelativePath (
+               this, "/" + myName + "/Output/tracked positions.txt");
+      track.setAttachedFileName (path);
+      NumericOutputProbe source =
+         (NumericOutputProbe)getOutputProbes ().get ("source positions");
+      path =
+         PathFinder
+            .getSourceRelativePath (
+               this, "/" + myName + "/Output/source positions.txt");
+      source.setAttachedFileName (path);
+      NumericOutputProbe excite =
+         (NumericOutputProbe)getOutputProbes ().get ("computed excitations");
+      path =
+         PathFinder
+            .getSourceRelativePath (
+               this, "/" + myName + "/Output/computed excitations.txt");
+      excite.setAttachedFileName (path);
    }
 
    /**
@@ -693,13 +724,15 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Creates a NumericOutPutProbe for the given property {@code prop} of the
-    * joint {@code jt} with the parameters {@code start}, {@code stop} and
-    * {@code step}. Adds a widget to the control panel {@code panel} for each
-    * {@code prop}.
+    * Creates a {@link NumericOutputProbe} for the given property {@code prop}
+    * of the model component {@code comp} with the parameters {@code start},
+    * {@code stop} and {@code step}. Adds a widget to a {@link ControlPanel} for
+    * each {@code prop}, if {@code panel} is not null.
     * 
-    * @param jt
+    * @param comp
+    * Model component
     * @param panel
+    * Contro panel
     * @param prop
     * Name of the property
     * @param start
@@ -710,16 +743,22 @@ public class OpenSimTest extends RootModel {
     * Output interval of the probe
     */
    private void createProbeAndPanel (
-      ModelComponent comp, ControlPanel panel, String prop, double start, double stop,
-      double step) {
-      if (panel != null) {
-         panel.addWidget (comp, prop);
-      }
+      ModelComponent comp, ControlPanel panel, String prop, double start,
+      double stop, double step) {
       String filepath =
-         PathFinder.getSourceRelativePath (this, "/" + prop + ".txt");
+         PathFinder
+            .getSourceRelativePath (
+               this, "/" + myName + "/Output/" + comp.getName () + " " + prop
+               + ".txt");
       NumericOutputProbe probe =
          new NumericOutputProbe (comp, prop, filepath, step);
-      probe.setName (prop);
+      if (panel != null) {
+         panel.addWidget (comp, prop);
+         probe.setName (prop);
+      }
+      else {
+         probe.setName (comp.getName () + " " + prop);
+      }
       probe.setStartStopTimes (start, stop);
       addOutputProbe (probe);
    }
@@ -757,8 +796,8 @@ public class OpenSimTest extends RootModel {
          motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
       motcon.setProbeDuration (duration);
-      motcon.setComputeIncrementally (true);
-      //motcon.setUseKKTFactorization (true);
+      //motcon.setComputeIncrementally (true);
+      motcon.setUseKKTFactorization (true);
       motcon.setDebug (false);
       return motcon;
       // Define FrameMarkers for the force input probes
@@ -796,6 +835,7 @@ public class OpenSimTest extends RootModel {
          defineControllerAndProps (myForces, myMotion, myMap, name, scale);
       addMotionTargets (controller, myMap, scale);
       controller.createProbesAndPanel (this);
+      adjustDefaultProbePaths();   
       addController (controller);
       addProbesToMotionTargets (controller, myMap, myMotion);
       addGroundReactionForces (controller, myForces);
@@ -806,7 +846,7 @@ public class OpenSimTest extends RootModel {
       // Define output probes for each joint angle
       addNumOutputProbesAndPanel (myMotion, controller);
    }
-
+   
    /**
     * Queries all {@link RigidBody} objects from the current {@link MechModel}
     * and stores them in a global variable.
@@ -1092,7 +1132,6 @@ public class OpenSimTest extends RootModel {
                "Warning: Attachment adjusted for: " + m.getName () + " to: "
                + newFrame.getName ());
       });
-      // Provide some info in the console
       System.out.println ("Model markers: " + myMarkers.size ());
       return myMarkers;
    }
@@ -1233,18 +1272,14 @@ public class OpenSimTest extends RootModel {
     * @param scale
     */
    private void readOsimFile (String name, int scale) {
-      // Define location and name of the loaded osim file
       String modelPath = myName + "/gait2392_simbody_scaled.osim";
       File osimFile = ArtisynthPath.getSrcRelativeFile (this, modelPath);
       String geometryPath = myName + "/Geometry/";
       File geometryFile = ArtisynthPath.getSrcRelativeFile (this, geometryPath);
-      // Read the specified osim file
       OpenSimParser parser = new OpenSimParser (osimFile);
       parser.setGeometryPath (geometryFile);
       parser.createModel (myMech);
-      // Scale the model from meters to millimeters
       myMech.scaleDistance (scale);
-      // Set rigid body damping parameters
       myMech.setFrameDamping (0.01);
       myMech.setRotaryDamping (0.2);
       // myMech.setInertialDamping (0.1);
@@ -1264,21 +1299,16 @@ public class OpenSimTest extends RootModel {
     */
    private MarkerMotionData readTRCFile (String name, int scale)
       throws IOException {
-      // Retrieve experimental marker data from trc
-      // Specify trc file name to be read
       String trcName = name + "/Input/" + name + "_positions.trc";
       String trcPath =
          ArtisynthPath.getSrcRelativePath (this, trcName).toString ();
       TRCReader trcReader = new TRCReader (new File (trcPath));
-      // Read trc file
       trcReader.readData ();
-      // Print reading details to the console
       System.out
          .println (
             "Experimental markers: " + trcReader.getMarkerLabels ().size ());
       System.out
          .println ("TRC file: read " + trcReader.getNumFrames () + " frames");
-      // Store marker trajectories and corresponding frames
       MarkerMotionData motion = trcReader.getMotionData ();
       // Scale the marker trajectories individually, since there is no general
       // .scale () method for marker positions

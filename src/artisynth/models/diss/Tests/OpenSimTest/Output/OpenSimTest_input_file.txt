@@ -33828,7 +33828,7 @@ Use motion targets : true
 Use force targets: false
 Use regularization: true
 Use KKT Factorization: true
-Incremental computation: false
+Incremental computation: true
 Normalize H: false
 Use timestep scaling: false
 Integrator: ConstrainedBackwardEuler

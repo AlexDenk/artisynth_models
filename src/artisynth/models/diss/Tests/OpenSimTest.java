@@ -27,13 +27,11 @@ import artisynth.core.inverse.ForceTarget;
 import artisynth.core.inverse.FrameExciter;
 import artisynth.core.inverse.FrameExciter.WrenchComponent;
 import artisynth.core.inverse.MotionTargetTerm;
-import artisynth.core.inverse.TrackingController;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
 import artisynth.core.mechmodels.CollisionBehaviorList;
 import artisynth.core.mechmodels.CollisionManager;
-import artisynth.core.mechmodels.ForceEffector;
 import artisynth.core.mechmodels.Frame;
 import artisynth.core.mechmodels.FrameMarker;
 import artisynth.core.mechmodels.JointBase;
@@ -46,11 +44,12 @@ import artisynth.core.mechmodels.MultiPointMuscle;
 import artisynth.core.mechmodels.PlanarConnector;
 import artisynth.core.mechmodels.PointList;
 import artisynth.core.mechmodels.RigidBody;
-import artisynth.core.modelbase.ComponentListView;
 import artisynth.core.modelbase.ModelComponent;
 import artisynth.core.modelbase.RenderableComponentList;
 import artisynth.core.opensim.OpenSimParser;
+import artisynth.core.probes.DataFunction;
 import artisynth.core.probes.MarkerMotionData;
+import artisynth.core.probes.NumericControlProbe;
 import artisynth.core.probes.NumericInputProbe;
 import artisynth.core.probes.NumericOutputProbe;
 import artisynth.core.probes.TRCReader;
@@ -66,18 +65,19 @@ import artisynth.models.diss.MotionTargetController;
 import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
+import maspack.interpolation.Interpolation;
 import maspack.matrix.AxisAlignedRotation;
-import maspack.matrix.Matrix3dBase;
 import maspack.matrix.Point3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
-import maspack.properties.Property;
 import maspack.render.RenderList;
 import maspack.render.RenderProps;
 import maspack.render.Renderer.FaceStyle;
 import maspack.render.Renderer.LineStyle;
 import maspack.render.Renderer.Shading;
 import maspack.render.Viewer.RotationMode;
+import maspack.spatialmotion.Wrench;
+import maspack.util.Clonable;
 import maspack.util.DoubleInterval;
 import maspack.util.PathFinder;
 
@@ -111,6 +111,48 @@ public class OpenSimTest extends RootModel {
    String myName = null;
    // Scale of the model.
    int myScale;
+   
+   // ----------------------------Nested classes--------------------------------
+
+   public class MomentArmFunction implements DataFunction, Clonable {
+      // Frame used for moment arm calculation
+      Frame myFrame;
+      // cop identifier (left or right)
+      String mySide;
+
+      public MomentArmFunction (Frame frame, String side) {
+         this.myFrame = frame;
+         this.mySide = side;
+      }
+
+      public Object clone () throws CloneNotSupportedException {
+         return super.clone ();
+      }
+
+      @Override
+      public void eval (VectorNd vec, double t, double trel) {
+         Vector3d ref = myFrame.getPosition ();
+         int frame = myForces.getFrame (t);
+         // calculate moment arm from cop to current position
+         Vector3d cop = myForces.getData (frame, mySide + " COP");
+         Vector3d momArm = new Vector3d (0, 0, 0);
+         momArm.sub (ref, cop);
+         // calculate resulting moment
+         Vector3d grf = new Vector3d (0, 0, 0);
+         vec.getSubVector (new int[] { 0, 1, 2 }, grf);
+         Vector3d grm = new Vector3d (0, 0, 0);
+         vec.getSubVector (new int[] { 3, 4, 5 }, grm);
+         Vector3d momRes = new Vector3d (0, 0, 0);
+         momRes.cross (momArm, grf);
+         momRes.add (grm);
+         // apply grf and resulting moment as wrench
+         myFrame
+            .setExternalForce (
+               new Wrench (
+                  vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
+                  momRes.z));
+      }
+   }
 
    // -----------------------------Constructors---------------------------------
    public OpenSimTest () {
@@ -240,14 +282,6 @@ public class OpenSimTest extends RootModel {
       controller.getTargetPoints ().forEach (c -> {
          RenderProps.setPointColor (c, Color.WHITE);
       });
-      // FrameMarker mkrL = (FrameMarker)myMech.get ("cop_ref_1");
-      // RenderProps
-      // .setSphericalPoints (
-      // mkrL, 0.01 * scale, Color.GRAY.darker ().darker ());
-      // FrameMarker mkrR = (FrameMarker)myMech.get ("cop_ref_2");
-      // RenderProps
-      // .setSphericalPoints (
-      // mkrR, 0.01 * scale, Color.GRAY.darker ().darker ());
    }
 
    /**
@@ -277,17 +311,11 @@ public class OpenSimTest extends RootModel {
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
    public void setRenderProps (CollisionManager coll, int scale) {
-      // Setup contact rendering
       setContactRenderProps (coll, scale);
-      // disable components coordinate systems rendering
       setBodyRenderProps ();
-      // Muscle rendering
       setMuscleRenderProps (scale);
-      // Marker rendering
       setMarkerRendering (scale);
-      // Stress surface rendering
       // setSurfaceRenderProps ();
-      // Viewer properties
       setViewerProps ();
    }
 
@@ -355,30 +383,21 @@ public class OpenSimTest extends RootModel {
                "%% alexander.denk@uni-due.de                                  %%\n")
             .append (
                "%%------------------------------------------------------------%%\n");
-         // Append solver info
          MechSystemSolver solver = myMech.getSolver ();
          writeSolverInfo (output, solver);
-         // Append physics info
          writePhysicsInfo (output, myMech);
-         // Append model info
          String modelPath = myName + "/gait2392_simbody_scaled.osim";
          writeModelInfo (output, modelPath, myBodies);
-         // Append joint info
          writeJointInfo (output, myJoints);
-         // Append muscle info
          writeMuscleInfo (output, myMuscles);
-         // Append FEM info
          writeFEMInfo (output, myMeshes);
-         // Append probes info
          MotionTargetController controller =
             (MotionTargetController)getControllers ().get ("Motion controller");
          writeProbesInfo (
             output, controller, myMotion, myMap, myForces, myMarkers);
-         // Append contact info
          CollisionManager coll = myMech.getCollisionManager ();
          CollisionBehaviorList behav = coll.behaviors ();
          writeContactInfo (output, coll, behav);
-         // write to file
          writer.print (output.toString ());
       }
    }
@@ -400,36 +419,26 @@ public class OpenSimTest extends RootModel {
     * {@link ForceTarget} object containing the experimental forces
     */
    private void addForceProbe (ForceData forces, Frame frame, String side) {
-      NumericInputProbe grf = new NumericInputProbe ();
+      NumericControlProbe grf = new NumericControlProbe(); 
       grf.setModel (myMech);
       grf.setName (frame.getName () + " ground reaction forces");
       double duration =
          forces.getFrameTime (forces.numFrames () - 1)
          - forces.getFrameTime (0);
       grf.setStartStopTimes (0.0, duration);
-      Property[] props = new Property[1];
-      props[0] = frame.getProperty ("externalForce");
-      grf.setInputProperties (props);
+      grf.setInterpolationOrder (Interpolation.Order.Linear);
+      grf.setDataFunction (new MomentArmFunction (frame, side));
+      grf.setVsize (6);
 
-      Vector3d framePos = frame.getPosition ();
       for (int i = 0; i < forces.numFrames (); i++) {
          VectorNd force = new VectorNd (6);
          double time = forces.getFrameTime (i);
          force.add (0, forces.getData (i, side + " GRF").x);
          force.add (1, forces.getData (i, side + " GRF").y);
          force.add (2, forces.getData (i, side + " GRF").z);
-         // calculate moment arm from cop to frame pos
-         Vector3d cop = forces.getData (i, side + " COP");
-         Vector3d arm = new Vector3d (0, 0, 0);
-         arm.sub (framePos, cop);
-         // calculate resulting moment at calcn
-         Vector3d moment = new Vector3d (0, 0, 0);
-         moment.cross (arm, forces.getData (i, side + " GRF"));
-         moment.add (forces.getData (i, side + " GRM"));
-         // add resulting moment
-         force.add (3, moment.x);
-         force.add (4, moment.y);
-         force.add (5, moment.z);
+         force.add (3, forces.getData (i, side + " GRM").x);
+         force.add (4, forces.getData (i, side + " GRM").y);
+         force.add (5, forces.getData (i, side + " GRM").z);
          grf.addData (time, force);
       }
       addInputProbe (grf);
@@ -788,31 +797,16 @@ public class OpenSimTest extends RootModel {
       throws IOException {
       MotionTargetController motcon =
          new MotionTargetController (myMech, "Motion controller", name, scale);
-      //motcon.addForceData (forces);
-      //motcon.addMotionData (motion, map);
       motcon.addL2RegularizationTerm (1);
       // Calculate the duration in seconds from the number of frames
       double duration =
          motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
       motcon.setProbeDuration (duration);
-      //motcon.setComputeIncrementally (true);
+      motcon.setComputeIncrementally (true);
       motcon.setUseKKTFactorization (true);
       motcon.setDebug (false);
       return motcon;
-      // Define FrameMarkers for the force input probes
-      // ArrayList<FrameMarker> list = new ArrayList<FrameMarker> ();
-      // FrameMarker leftCOP = new FrameMarker ("cop_ref_1");
-      // leftCOP.setFrame (myBodies.get ("calcn_l"));
-      // myMech.add (leftCOP);
-      // list.add (leftCOP);
-      // motcon.addCOPReference (leftCOP);
-      // FrameMarker rightCOP = new FrameMarker ("cop_ref_2");
-      // rightCOP.setFrame (myBodies.get ("calcn_r"));
-      // myMech.add (rightCOP);
-      // list.add (rightCOP);
-      // motcon.addCOPReference (rightCOP);
-      // addForceProbes (motcon, list, myForces);
    }
 
    /**
@@ -842,8 +836,6 @@ public class OpenSimTest extends RootModel {
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
       // within the probe itself
-      // TODO: Generate an autosave/write method for all output probes
-      // Define output probes for each joint angle
       addNumOutputProbesAndPanel (myMotion, controller);
    }
    

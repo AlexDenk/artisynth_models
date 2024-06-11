@@ -134,7 +134,7 @@ public class OpenSimTest extends RootModel {
          Vector3d ref = myFrame.getPosition ();
          int frame = myForces.getFrame (t);
          // calculate moment arm from cop to current position
-         Vector3d cop = myForces.getData (frame, mySide + " COP");
+         Vector3d cop = myForces.getData (frame + 300, mySide + " COP");
          Vector3d arm = new Vector3d ();
          arm.sub (cop, ref);
          // calculate resulting moment
@@ -426,15 +426,15 @@ public class OpenSimTest extends RootModel {
       grf.setName (frame.getName () + " ground reaction forces");
       double duration =
          forces.getFrameTime (forces.numFrames () - 1)
-         - forces.getFrameTime (301);
+         - forces.getFrameTime (0);
       grf.setStartStopTimes (0.0, duration);
       grf.setInterpolationOrder (Interpolation.Order.Cubic);
       grf.setDataFunction (new MomentArmFunction (frame, side));
       grf.setVsize (6);
 
-      for (int i = 301; i < forces.numFrames (); i++) {
+      for (int i = 0; i < forces.numFrames (); i++) {
          VectorNd force = new VectorNd (6);
-         double time = forces.getFrameTime (i - 301);
+         double time = forces.getFrameTime (i);
          force.add (0, forces.getData (i, side + " GRF").x);
          force.add (1, forces.getData (i, side + " GRF").y);
          force.add (2, forces.getData (i, side + " GRF").z);
@@ -520,7 +520,7 @@ public class OpenSimTest extends RootModel {
       ControlPanel panel = new ControlPanel ("Joint Coordinates");
       // Define Output Probes
       double start = motion.getFrameTime (0);
-      double stop = motion.getFrameTime (motion.numFrames () - 31);
+      double stop = motion.getFrameTime (motion.numFrames () - 1);
       double step = getMaxStepSize ();
       myJoints.forEach (jt -> {
          switch (jt.getName ()) {
@@ -622,7 +622,7 @@ public class OpenSimTest extends RootModel {
       // Add target positions to the probe frame by frame
       if (expMotion != null) {
          int size = controller.getMotionSources ().size ();
-         for (int i = 31; i < motion.numFrames (); i++) {
+         for (int i = 0; i < motion.numFrames (); i++) {
             VectorNd mot = new VectorNd (size * 3);
             for (int j = 0; j < size; j++) {
                String name = controller.getMotionSources ().get (j).getName ();
@@ -637,7 +637,7 @@ public class OpenSimTest extends RootModel {
                   e.printStackTrace ();
                }
             }
-            double time = motion.getFrameTime (i - 31);
+            double time = motion.getFrameTime (i);
             expMotion.addData (time, mot);
          }
          expMotion.setActive (true);
@@ -799,14 +799,15 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     */
    private MotionTargetController defineControllerAndProps (
-      MarkerMotionData motion, String name)
+      MarkerMotionData motion, MarkerMapping map, String name)
       throws IOException {
       MotionTargetController motcon =
          new MotionTargetController (myMech, "Motion controller", name);
+      motcon.addMotionData (motion, map);
       motcon.addL2RegularizationTerm (1);
       // Calculate the duration in seconds from the number of frames
       double duration =
-         motion.getFrameTime (motion.numFrames () - 31)
+         motion.getFrameTime (motion.numFrames () - 1)
          - motion.getFrameTime (0);
       motcon.setProbeDuration (duration);
       motcon.setComputeIncrementally (true);
@@ -832,7 +833,7 @@ public class OpenSimTest extends RootModel {
       myMap = getMapFromFile (name);
       // Generate and populate motion and force targets
       MotionTargetController controller =
-         defineControllerAndProps (myMotion, name);
+         defineControllerAndProps (myMotion, myMap, name);
       addMotionTargets (controller, myMap);
       controller.createProbesAndPanel (this);
       adjustDefaultProbePaths ();
@@ -1223,15 +1224,10 @@ public class OpenSimTest extends RootModel {
     */
    private void initializeOsim (String myName, int scale) {
       readOsimFile (myName, scale);
-      // Store rigid body components
       myBodies = getBodiesFromOsim ();
-      // Define and store joint constraints
       myJoints = getJointsFromOsim (myBodies);
-      // Store muscle components
       myMuscles = getMusclesFromOsim ();
-      // Store marker components
       myMarkers = getMarkerFromOsim ();
-      // Set initial body pose
       setInitialPose ();
    }
 
@@ -1361,13 +1357,13 @@ public class OpenSimTest extends RootModel {
       myJoints.get ("ground_pelvis").setCoordinate (3, 0.61);
       myJoints.get ("ground_pelvis").setCoordinate (4, 0.97);
       myJoints.get ("ground_pelvis").setCoordinate (5, 0.036);
-      myJoints.get ("hip_r").setCoordinateDeg (0, -14);
-      myJoints.get ("knee_r").setCoordinateDeg (0, -10);
-      myJoints.get ("ankle_r").setCoordinateDeg (0, 3);
+      myJoints.get ("hip_r").setCoordinateDeg (0, -17.0);
+      myJoints.get ("knee_r").setCoordinateDeg (0, -4);
+      myJoints.get ("ankle_r").setCoordinateDeg (0, 9);
       myJoints.get ("hip_l").setCoordinateDeg (0, 25);
-      myJoints.get ("knee_l").setCoordinateDeg (0, -4);
-      myJoints.get ("ankle_l").setCoordinateDeg (0, -9);
-      myJoints.get ("back").setCoordinateDeg (0, -17);
+      myJoints.get ("knee_l").setCoordinateDeg (0, -9);
+      myJoints.get ("ankle_l").setCoordinateDeg (0, -3.2);
+      myJoints.get ("back").setCoordinateDeg (0, -17.2);
    }
 
    /**
@@ -1649,7 +1645,6 @@ public class OpenSimTest extends RootModel {
             "%%------------------------------------------------------------%%\n")
          .append ("\nCONTROLLER INFORMATION\n").append ("Use motion targets : ")
          .append (controller.getMotionTargetTerm ().isEnabled ()).append ("\n")
-         .append ("Use force targets: ").append (controller.hasForceTargets ())
          .append ("\n").append ("Use regularization: ")
          .append (controller.getL2RegularizationTerm ().isEnabled ())
          .append ("\n").append ("Use KKT Factorization: ")

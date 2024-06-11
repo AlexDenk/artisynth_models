@@ -1,0 +1,10 @@
+%%----------------------- MESSAGE FILE -----------------------%%
+%% Author: Alexander Denk, Copyright (c) 2024                 %%
+%% (UDE) University of Duisburg-Essen                         %%
+%% Chair of Mechanics and Robotics                            %%
+%% alexander.denk@uni-due.de                                  %%
+%%------------------------------------------------------------%%
+
+------------------------- TIME	0.0017 --------------------------
+
+PROCEED WITH INVERSE OPTIMIZATION

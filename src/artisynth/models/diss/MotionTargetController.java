@@ -220,39 +220,6 @@ public class MotionTargetController extends TrackingController {
    }
 
    /**
-    * Adds the model component {@code comp} to the list of cop references.
-    * 
-    * @param comp
-    * Model component
-    */
-   public void addCOPReference (ModelComponent comp) {
-      if (comp.getProperty ("externalForce") != null) {
-         this.copRefList.add (comp);
-      }
-   }
-
-   /**
-    * Adds experimental force data to this controller.
-    * 
-    * @param frcs
-    * ForceData
-    */
-   public void addForceData (ForceData frcs) {
-      this.myForces = frcs;
-   }
-
-   /**
-    * Adds a {@link NumericInputProbe} to the controller.
-    * 
-    * @param probe
-    * NumericInputProbe
-    */
-   public void addInputProbe (NumericInputProbe probe) {
-      this.probeList.add (probe);
-
-   }
-
-   /**
     * Adds experimental motion data to this controller.
     * 
     * @param mot
@@ -264,15 +231,6 @@ public class MotionTargetController extends TrackingController {
    public void addMotionData (MarkerMotionData mot, MarkerMapping map) {
       this.myMotion = mot;
       this.myMap = map;
-   }
-
-   /**
-    * Queries of the current controller makes use of force targets.
-    * 
-    * @return
-    */
-   public boolean hasForceTargets () {
-      return hasForceTargets;
    }
 
    /**
@@ -323,7 +281,7 @@ public class MotionTargetController extends TrackingController {
             String name =
                myMap.getExpLabelFromModel (mySources.get (i).getName ());
             Point3d position;
-            position = (Point3d)myMotion.getMarkerPosition (31, name);
+            position = (Point3d)myMotion.getMarkerPosition (0, name);
             myTargets.get (i).setPosition (position);
          }
       }

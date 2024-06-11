@@ -135,17 +135,22 @@ public class OpenSimTest extends RootModel {
          int frame = myForces.getFrame (t);
          // calculate moment arm from cop to current position
          Vector3d cop = myForces.getData (frame, mySide + " COP");
-         Vector3d momArm = new Vector3d (0, 0, 0);
-         momArm.sub (ref, cop);
+         Vector3d arm = new Vector3d ();
+         arm.sub (cop, ref);
          // calculate resulting moment
-         Vector3d grf = new Vector3d (0, 0, 0);
+         Vector3d grf = new Vector3d ();
          vec.getSubVector (new int[] { 0, 1, 2 }, grf);
-         Vector3d grm = new Vector3d (0, 0, 0);
+         Vector3d grm = new Vector3d ();
          vec.getSubVector (new int[] { 3, 4, 5 }, grm);
-         Vector3d momRes = new Vector3d (0, 0, 0);
-         momRes.cross (momArm, grf);
+         Vector3d momRes = new Vector3d ();
+         momRes.cross (arm, grf);
          momRes.add (grm);
          // apply grf and resulting moment as wrench
+         // myFrame
+         // .setExternalForce (
+         // new Wrench (
+         // vec.get (0), vec.get (1), vec.get (2), vec.get (3),
+         // vec.get (4), vec.get (5)));
          myFrame
             .setExternalForce (
                new Wrench (
@@ -260,7 +265,6 @@ public class OpenSimTest extends RootModel {
       coll.setDrawContactForces (true);
       coll.setDrawFrictionForces (true);
       coll.setContactForceLenScale (scale / 1000);
-      // coll.setDrawColorMap (ColorMapType.PENETRATION_DEPTH);
       RenderProps.setVisible (coll, true);
       RenderProps.setSolidArrowLines (coll, 0.01 * scale, Color.BLUE);
       RenderProps.setSphericalPoints (coll, 0.01 * scale, Color.CYAN);
@@ -269,10 +273,8 @@ public class OpenSimTest extends RootModel {
    /**
     * Sets the rendering properties of every model marker within the root model.
     * 
-    * @param scale
-    * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
-   public void setMarkerRendering (int scale) {
+   public void setMarkerRendering () {
       myMarkers.forEach (m -> {
          RenderProps.setPointColor (m, Color.PINK);
       });
@@ -314,7 +316,7 @@ public class OpenSimTest extends RootModel {
       setContactRenderProps (coll, scale);
       setBodyRenderProps ();
       setMuscleRenderProps (scale);
-      setMarkerRendering (scale);
+      setMarkerRendering ();
       // setSurfaceRenderProps ();
       setViewerProps ();
    }
@@ -419,20 +421,20 @@ public class OpenSimTest extends RootModel {
     * {@link ForceTarget} object containing the experimental forces
     */
    private void addForceProbe (ForceData forces, Frame frame, String side) {
-      NumericControlProbe grf = new NumericControlProbe(); 
+      NumericControlProbe grf = new NumericControlProbe ();
       grf.setModel (myMech);
       grf.setName (frame.getName () + " ground reaction forces");
       double duration =
          forces.getFrameTime (forces.numFrames () - 1)
-         - forces.getFrameTime (0);
+         - forces.getFrameTime (301);
       grf.setStartStopTimes (0.0, duration);
-      grf.setInterpolationOrder (Interpolation.Order.Linear);
+      grf.setInterpolationOrder (Interpolation.Order.Cubic);
       grf.setDataFunction (new MomentArmFunction (frame, side));
       grf.setVsize (6);
 
-      for (int i = 0; i < forces.numFrames (); i++) {
+      for (int i = 301; i < forces.numFrames (); i++) {
          VectorNd force = new VectorNd (6);
-         double time = forces.getFrameTime (i);
+         double time = forces.getFrameTime (i - 301);
          force.add (0, forces.getData (i, side + " GRF").x);
          force.add (1, forces.getData (i, side + " GRF").y);
          force.add (2, forces.getData (i, side + " GRF").z);
@@ -454,17 +456,22 @@ public class OpenSimTest extends RootModel {
    private void addGroundReactionForces (
       MotionTargetController controller, ForceData forces) {
       RigidBody calcnR = myBodies.get ("calcn_r");
-      double maxForceRight = myForces.getMaxForce ("Right GRF");
-      double maxMomRight = myForces.getMaxMoment ("Right GRM");
+      double maxForce = myForces.getMaxForce ("Right GRF");
+      double maxMoment = myForces.getMaxMoment ("Right GRM");
       addForceProbe (forces, calcnR, "Right");
       createAndAddFrameExciters (
-         controller, myMech, calcnR, maxForceRight, maxMomRight);
+         controller, myMech, calcnR, maxForce, maxMoment);
       RigidBody calcnL = myBodies.get ("calcn_l");
-      double maxForceLeft = myForces.getMaxForce ("Left GRF");
-      double maxMomLeft = myForces.getMaxMoment ("Left GRM");
+      maxForce = myForces.getMaxForce ("Left GRF");
+      maxMoment = myForces.getMaxMoment ("Left GRM");
       addForceProbe (forces, calcnL, "Left");
       createAndAddFrameExciters (
-         controller, myMech, calcnL, maxForceLeft, maxMomLeft);
+         controller, myMech, calcnL, maxForce, maxMoment);
+      RigidBody pelvis = myBodies.get ("pelvis");
+      maxForce = 1000;
+      maxMoment = 20;
+      createAndAddFrameExciters (
+         controller, myMech, pelvis, maxForce, maxMoment);
    }
 
    /**
@@ -480,7 +487,7 @@ public class OpenSimTest extends RootModel {
     * Unit scale factor for the current model (m = 1, mm = 1000)
     */
    private void addMotionTargets (
-      MotionTargetController controller, MarkerMapping map, int scale) {
+      MotionTargetController controller, MarkerMapping map) {
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
       });
@@ -513,7 +520,7 @@ public class OpenSimTest extends RootModel {
       ControlPanel panel = new ControlPanel ("Joint Coordinates");
       // Define Output Probes
       double start = motion.getFrameTime (0);
-      double stop = motion.getFrameTime (motion.numFrames () - 1);
+      double stop = motion.getFrameTime (motion.numFrames () - 31);
       double step = getMaxStepSize ();
       myJoints.forEach (jt -> {
          switch (jt.getName ()) {
@@ -615,7 +622,7 @@ public class OpenSimTest extends RootModel {
       // Add target positions to the probe frame by frame
       if (expMotion != null) {
          int size = controller.getMotionSources ().size ();
-         for (int i = 0; i < motion.numFrames (); i++) {
+         for (int i = 31; i < motion.numFrames (); i++) {
             VectorNd mot = new VectorNd (size * 3);
             for (int j = 0; j < size; j++) {
                String name = controller.getMotionSources ().get (j).getName ();
@@ -630,7 +637,7 @@ public class OpenSimTest extends RootModel {
                   e.printStackTrace ();
                }
             }
-            double time = motion.getFrameTime (i);
+            double time = motion.getFrameTime (i - 31);
             expMotion.addData (time, mot);
          }
          expMotion.setActive (true);
@@ -792,15 +799,14 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     */
    private MotionTargetController defineControllerAndProps (
-      ForceData forces, MarkerMotionData motion, MarkerMapping map, String name,
-      int scale)
+      MarkerMotionData motion, String name)
       throws IOException {
       MotionTargetController motcon =
-         new MotionTargetController (myMech, "Motion controller", name, scale);
+         new MotionTargetController (myMech, "Motion controller", name);
       motcon.addL2RegularizationTerm (1);
       // Calculate the duration in seconds from the number of frames
       double duration =
-         motion.getFrameTime (motion.numFrames () - 1)
+         motion.getFrameTime (motion.numFrames () - 31)
          - motion.getFrameTime (0);
       motcon.setProbeDuration (duration);
       motcon.setComputeIncrementally (true);
@@ -826,10 +832,10 @@ public class OpenSimTest extends RootModel {
       myMap = getMapFromFile (name);
       // Generate and populate motion and force targets
       MotionTargetController controller =
-         defineControllerAndProps (myForces, myMotion, myMap, name, scale);
-      addMotionTargets (controller, myMap, scale);
+         defineControllerAndProps (myMotion, name);
+      addMotionTargets (controller, myMap);
       controller.createProbesAndPanel (this);
-      adjustDefaultProbePaths();   
+      adjustDefaultProbePaths ();
       addController (controller);
       addProbesToMotionTargets (controller, myMap, myMotion);
       addGroundReactionForces (controller, myForces);
@@ -1240,12 +1246,9 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     */
    private ForceData readMOTFile (String name) throws IOException {
-      // Retrieve the experimental forces from mot file
-      // Specifiy mot file to be read
       String motName = name + "/Input/" + name + "_forces.mot";
       String motPath = ArtisynthPath.getSrcRelativePath (this, motName);
       MOTReader motReader = new MOTReader (new File (motPath));
-      // Read mot file
       motReader.readData ();
       // Print reading details to the console
       System.out
@@ -1272,6 +1275,7 @@ public class OpenSimTest extends RootModel {
       parser.setGeometryPath (geometryFile);
       parser.createModel (myMech);
       myMech.scaleDistance (scale);
+      myMech.scaleMass (scale);
       myMech.setFrameDamping (0.01);
       myMech.setRotaryDamping (0.2);
       // myMech.setInertialDamping (0.1);

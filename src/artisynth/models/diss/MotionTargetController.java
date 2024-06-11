@@ -160,7 +160,7 @@ public class MotionTargetController extends TrackingController {
 
    // -------------------------------Constructors------------------------------
    public MotionTargetController (MechSystemBase myMech, String myName,
-   String fileName, int scale) throws IOException {
+   String fileName) throws IOException {
       // Needs to be specifically written like this, because if done
       // otherwise, the tracking controller apply method cannot refer to the
       // myMech object and throws a NullPointerException
@@ -323,7 +323,7 @@ public class MotionTargetController extends TrackingController {
             String name =
                myMap.getExpLabelFromModel (mySources.get (i).getName ());
             Point3d position;
-            position = (Point3d)myMotion.getMarkerPosition (0, name);
+            position = (Point3d)myMotion.getMarkerPosition (31, name);
             myTargets.get (i).setPosition (position);
          }
       }

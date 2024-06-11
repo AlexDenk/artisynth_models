@@ -133,7 +133,7 @@ public class OpenSimTest extends RootModel {
       public void eval (VectorNd vec, double t, double trel) {
          Vector3d ref = myFrame.getPosition ();
          int frame = myForces.getFrame (t);
-         // calculate moment arm from cop to current position
+         // calculate moment arm from current calcn position to cop
          Vector3d cop = myForces.getData (frame, mySide + " COP");
          Vector3d arm = new Vector3d ();
          arm.sub (cop, ref);
@@ -146,16 +146,16 @@ public class OpenSimTest extends RootModel {
          momRes.cross (arm, grf);
          momRes.add (grm);
          // apply grf and resulting moment as wrench
-         // myFrame
-         // .setExternalForce (
-         // new Wrench (
-         // vec.get (0), vec.get (1), vec.get (2), vec.get (3),
-         // vec.get (4), vec.get (5)));
          myFrame
             .setExternalForce (
                new Wrench (
-                  vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
-                  momRes.z));
+                  vec.get (0), vec.get (1), vec.get (2), vec.get (3),
+                  vec.get (4), vec.get (5)));
+         // myFrame
+         // .setExternalForce (
+         // new Wrench (
+         // vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
+         // momRes.z));
       }
    }
 
@@ -709,9 +709,10 @@ public class OpenSimTest extends RootModel {
                   frame.getName () + "_" + wcs[i].toString ().toLowerCase ());
          }
       }
+      Double[] weights = new Double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 5.0 };
       for (int i = 0; i < 6; i++) {
          mech.addForceEffector (exs[i]);
-         ctrl.addExciter (exs[i]);
+         ctrl.addExciter (weights[i], exs[i]);
       }
       return exs;
    }

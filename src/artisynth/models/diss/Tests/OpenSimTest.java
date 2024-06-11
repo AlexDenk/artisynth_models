@@ -134,7 +134,7 @@ public class OpenSimTest extends RootModel {
          Vector3d ref = myFrame.getPosition ();
          int frame = myForces.getFrame (t);
          // calculate moment arm from cop to current position
-         Vector3d cop = myForces.getData (frame + 300, mySide + " COP");
+         Vector3d cop = myForces.getData (frame, mySide + " COP");
          Vector3d arm = new Vector3d ();
          arm.sub (cop, ref);
          // calculate resulting moment

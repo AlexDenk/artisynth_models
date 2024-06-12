@@ -22,6 +22,7 @@ import maspack.render.RenderProps;
  * Test class to check, whether COP projection of {@link MotionTargetController}
  * works as expected.
  */
+@Deprecated
 public class COPProjectionTest extends OpenSimTest {
    MechModel mech = new MechModel ();
    RigidBody box;
@@ -79,9 +80,9 @@ public class COPProjectionTest extends OpenSimTest {
       myForces = readMOTFile ();
       controller =
          new MotionTargetController (mech, "controller", "COPPRojectionTest");
-      controller.addForceData (myForces);
-      controller.addCOPReference (copRef1);
-      controller.addCOPReference (copRef2);
+      //controller.addForceData (myForces);
+      //controller.addCOPReference (copRef1);
+      //controller.addCOPReference (copRef2);
       controller.addMotionTarget (src);
       controller.createProbesAndPanel (this);
       addController (controller);
@@ -122,10 +123,10 @@ public class COPProjectionTest extends OpenSimTest {
          forces2.addData (time, force);
       }
       addInputProbe (forces1);
-      controller.addInputProbe (forces1);
+      //controller.addInputProbe (forces1);
       forces1.setActive (false);
       addInputProbe (forces2);
-      controller.addInputProbe (forces2);
+      //controller.addInputProbe (forces2);
       forces2.setActive (false);
    }
 

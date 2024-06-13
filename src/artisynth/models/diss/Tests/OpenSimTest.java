@@ -145,17 +145,11 @@ public class OpenSimTest extends RootModel {
          Vector3d momRes = new Vector3d ();
          momRes.cross (arm, grf);
          momRes.add (grm);
-         // apply grf and resulting moment as wrench
          myFrame
             .setExternalForce (
                new Wrench (
-                  vec.get (0), vec.get (1), vec.get (2), vec.get (3),
-                  vec.get (4), vec.get (5)));
-         // myFrame
-         // .setExternalForce (
-         // new Wrench (
-         // vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
-         // momRes.z));
+                  vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
+                  momRes.z));
       }
    }
 
@@ -491,10 +485,6 @@ public class OpenSimTest extends RootModel {
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
       });
-      // Add each model marker with a corresponding experimental marker to the
-      // list of controllable markers ("sources") for the tracking
-      // controller. Confusingly, AddMotionTarget adds a source, but also
-      // generates a corresponding target point.
       myMarkers.forEach (mkr -> {
          try {
             if (map.getExpLabelFromModel (mkr.getName ()) != null) {
@@ -709,7 +699,7 @@ public class OpenSimTest extends RootModel {
                   frame.getName () + "_" + wcs[i].toString ().toLowerCase ());
          }
       }
-      Double[] weights = new Double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 5.0 };
+      Double[] weights = new Double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
       for (int i = 0; i < 6; i++) {
          mech.addForceEffector (exs[i]);
          ctrl.addExciter (weights[i], exs[i]);
@@ -813,6 +803,9 @@ public class OpenSimTest extends RootModel {
       motcon.setProbeDuration (duration);
       motcon.setComputeIncrementally (true);
       motcon.setUseKKTFactorization (true);
+      motcon.getMotionTargetTerm ().setUsePDControl (true);
+      motcon.getMotionTargetTerm ().setKd (0.5);
+      motcon.getMotionTargetTerm ().setKp (1.0);
       motcon.setDebug (false);
       return motcon;
    }
@@ -1359,11 +1352,11 @@ public class OpenSimTest extends RootModel {
       myJoints.get ("ground_pelvis").setCoordinate (4, 0.97);
       myJoints.get ("ground_pelvis").setCoordinate (5, 0.036);
       myJoints.get ("hip_r").setCoordinateDeg (0, -17.0);
-      myJoints.get ("knee_r").setCoordinateDeg (0, -4);
-      myJoints.get ("ankle_r").setCoordinateDeg (0, 9);
+      myJoints.get ("knee_r").setCoordinateDeg (0, -10);
+      myJoints.get ("ankle_r").setCoordinateDeg (0, 10);
       myJoints.get ("hip_l").setCoordinateDeg (0, 25);
-      myJoints.get ("knee_l").setCoordinateDeg (0, -9);
-      myJoints.get ("ankle_l").setCoordinateDeg (0, -3.2);
+      myJoints.get ("knee_l").setCoordinateDeg (0, -4);
+      myJoints.get ("ankle_l").setCoordinateDeg (0, -9);
       myJoints.get ("back").setCoordinateDeg (0, -17.2);
    }
 
@@ -1374,7 +1367,7 @@ public class OpenSimTest extends RootModel {
     */
    private void setSimulationProperties () {
       MechSystemSolver solver = myMech.getSolver ();
-      solver.setIntegrator (Integrator.Trapezoidal);
+      solver.setIntegrator (Integrator.ConstrainedBackwardEuler);
       // Use global stiffness, since more accurate and stable
       solver.setStabilization (PosStabilization.GlobalStiffness);
       setAdaptiveStepping (true);
@@ -1506,7 +1499,9 @@ public class OpenSimTest extends RootModel {
          .append (
             "%%------------------------------------------------------------%%\n")
          .append ("\nBODIES\n").append ("Model: ").append (path).append ("\n")
-         .append ("Number of bodies: ").append (bodies.size ()).append ("\n\n");
+         .append ("Number of bodies: ").append (bodies.size ()).append("\n")
+         .append ("Total model mass: ").append (myMech.getActiveMass ()).
+         append (" kg\n\n");
       // Identify unclosed meshes before appending individual info about each
       // body
       bodies.forEach (rb -> {

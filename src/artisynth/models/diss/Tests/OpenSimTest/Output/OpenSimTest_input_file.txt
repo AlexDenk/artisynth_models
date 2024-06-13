@@ -9,7 +9,7 @@
 %%------------------------------------------------------------%%
 
 SOLVER
-Integrator: Trapezoidal
+Integrator: ConstrainedBackwardEuler
 Stabilization: GlobalStiffness
 Max Iterations: 20
 Matrix Solver: Pardiso
@@ -27,6 +27,7 @@ Gravity: 0.0 -9.80665 0.0
 BODIES
 Model: OpenSimTest/gait2392_simbody_scaled.osim
 Number of bodies: 12
+Total model mass: 72.60000000000001 kg
 
 Unclosed Mesh found: pelvis
 Unclosed Mesh found: calcn_r
@@ -32655,8 +32656,8 @@ Opt fiber length: 0.080
 Tendon slack length: 0.359
 Number of points: 3
 Point 0	0.491 0.873 0.108
-Point 1	0.375 0.506 0.101
-Point 2	0.377 0.491 0.100
+Point 1	0.373 0.510 0.101
+Point 2	0.375 0.495 0.100
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -32668,10 +32669,10 @@ Opt fiber length: 0.201
 Tendon slack length: 0.256
 Number of points: 5
 Point 0	0.484 0.860 0.096
-Point 1	0.370 0.515 0.097
-Point 2	0.370 0.489 0.097
-Point 3	0.382 0.461 0.095
-Point 4	0.388 0.436 0.100
+Point 1	0.370 0.519 0.097
+Point 2	0.367 0.494 0.097
+Point 3	0.376 0.464 0.095
+Point 4	0.379 0.439 0.100
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -32683,8 +32684,8 @@ Opt fiber length: 0.109
 Tendon slack length: 0.326
 Number of points: 3
 Point 0	0.484 0.867 0.105
-Point 1	0.379 0.503 0.149
-Point 2	0.378 0.482 0.154
+Point 1	0.377 0.507 0.149
+Point 2	0.374 0.486 0.154
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -32696,8 +32697,8 @@ Opt fiber length: 0.173
 Tendon slack length: 0.089
 Number of points: 3
 Point 0	0.482 0.701 0.143
-Point 1	0.379 0.503 0.149
-Point 2	0.378 0.482 0.154
+Point 1	0.377 0.507 0.149
+Point 2	0.374 0.486 0.154
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -32710,9 +32711,9 @@ Tendon slack length: 0.100
 Number of points: 5
 Point 0	0.595 0.969 0.160
 Point 1	0.432 0.564 0.077
-Point 2	0.399 0.489 0.080
-Point 3	0.404 0.469 0.081
-Point 4	0.412 0.439 0.094
+Point 2	0.396 0.491 0.080
+Point 3	0.399 0.470 0.081
+Point 4	0.404 0.440 0.094
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -32786,7 +32787,7 @@ Number of points: 4
 Point 0	0.579 0.991 0.160
 Point 1	0.538 0.800 0.179
 Point 2	0.426 0.515 0.155
-Point 3	0.408 0.479 0.149
+Point 3	0.404 0.479 0.149
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -32810,9 +32811,9 @@ Opt fiber length: 0.352
 Tendon slack length: 0.126
 Number of points: 4
 Point 0	0.536 0.851 0.064
-Point 1	0.383 0.506 0.082
-Point 2	0.383 0.485 0.084
-Point 3	0.395 0.446 0.097
+Point 1	0.382 0.509 0.082
+Point 2	0.380 0.488 0.084
+Point 3	0.388 0.448 0.097
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -32934,7 +32935,7 @@ Tendon slack length: 0.310
 Number of points: 3
 Point 0	0.581 0.939 0.133
 Point 1	0.453 0.509 0.121
-Point 2	0.485 0.524 0.121
+Point 2	0.485 0.516 0.121
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -32949,7 +32950,7 @@ Point 0	0.491 0.699 0.138
 Point 1	0.492 0.629 0.120
 Point 2	0.456 0.506 0.107
 Point 3	0.441 0.489 0.106
-Point 4	0.480 0.527 0.105
+Point 4	0.480 0.520 0.105
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -32963,7 +32964,7 @@ Number of points: 4
 Point 0	0.511 0.711 0.150
 Point 1	0.510 0.695 0.148
 Point 2	0.454 0.508 0.125
-Point 3	0.480 0.530 0.121
+Point 3	0.481 0.523 0.121
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -32978,7 +32979,7 @@ Point 0	0.490 0.725 0.154
 Point 1	0.489 0.648 0.160
 Point 2	0.456 0.508 0.140
 Point 3	0.439 0.491 0.138
-Point 4	0.483 0.523 0.136
+Point 4	0.483 0.516 0.136
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -32991,7 +32992,7 @@ Tendon slack length: 0.390
 Number of points: 3
 Point 0	0.406 0.534 0.096
 Point 1	0.393 0.528 0.094
-Point 2	0.215 0.124 0.121
+Point 2	0.175 0.146 0.121
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33004,7 +33005,7 @@ Tendon slack length: 0.380
 Number of points: 3
 Point 0	0.403 0.533 0.147
 Point 1	0.393 0.528 0.147
-Point 2	0.215 0.124 0.121
+Point 2	0.175 0.146 0.121
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33015,8 +33016,8 @@ Rest length: 0.291
 Opt fiber length: 0.050
 Tendon slack length: 0.250
 Number of points: 2
-Point 0	0.362 0.384 0.127
-Point 1	0.215 0.124 0.121
+Point 0	0.349 0.390 0.127
+Point 1	0.175 0.146 0.121
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33027,10 +33028,10 @@ Rest length: 0.345
 Opt fiber length: 0.031
 Tendon slack length: 0.310
 Number of points: 4
-Point 0	0.363 0.404 0.121
-Point 1	0.261 0.153 0.097
-Point 2	0.257 0.117 0.099
-Point 3	0.288 0.093 0.101
+Point 0	0.351 0.410 0.121
+Point 1	0.224 0.171 0.097
+Point 2	0.216 0.136 0.099
+Point 3	0.245 0.109 0.101
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -33041,14 +33042,14 @@ Rest length: 0.433
 Opt fiber length: 0.034
 Tendon slack length: 0.400
 Number of points: 8
-Point 0	0.339 0.338 0.118
-Point 1	0.260 0.154 0.100
-Point 2	0.259 0.115 0.099
-Point 3	0.282 0.096 0.102
-Point 4	0.369 0.052 0.143
-Point 5	0.379 0.048 0.147
-Point 6	0.409 0.042 0.155
-Point 7	0.424 0.040 0.158
+Point 0	0.320 0.347 0.118
+Point 1	0.223 0.172 0.100
+Point 2	0.218 0.133 0.100
+Point 3	0.239 0.112 0.102
+Point 4	0.322 0.061 0.143
+Point 5	0.332 0.056 0.148
+Point 6	0.361 0.048 0.156
+Point 7	0.376 0.044 0.159
 Number of segments: 7
 Number of muscle wrappings: 0
 
@@ -33059,13 +33060,13 @@ Rest length: 0.420
 Opt fiber length: 0.043
 Tendon slack length: 0.380
 Number of points: 7
-Point 0	0.329 0.311 0.144
-Point 1	0.256 0.152 0.102
-Point 2	0.252 0.113 0.103
-Point 3	0.312 0.078 0.104
-Point 4	0.377 0.052 0.105
-Point 5	0.397 0.045 0.107
-Point 6	0.436 0.032 0.116
+Point 0	0.307 0.321 0.144
+Point 1	0.219 0.171 0.102
+Point 2	0.210 0.132 0.103
+Point 3	0.268 0.092 0.104
+Point 4	0.330 0.060 0.105
+Point 5	0.350 0.051 0.107
+Point 6	0.387 0.035 0.117
 Number of segments: 6
 Number of muscle wrappings: 0
 
@@ -33076,9 +33077,9 @@ Rest length: 0.304
 Opt fiber length: 0.098
 Tendon slack length: 0.223
 Number of points: 3
-Point 0	0.378 0.368 0.131
-Point 1	0.309 0.146 0.102
-Point 2	0.327 0.086 0.099
+Point 0	0.363 0.373 0.131
+Point 1	0.270 0.159 0.102
+Point 2	0.283 0.099 0.099
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33089,11 +33090,11 @@ Rest length: 0.211
 Opt fiber length: 0.050
 Tendon slack length: 0.161
 Number of points: 5
-Point 0	0.318 0.282 0.152
-Point 1	0.251 0.143 0.148
-Point 2	0.252 0.130 0.148
-Point 3	0.260 0.111 0.151
-Point 4	0.279 0.102 0.163
+Point 0	0.294 0.293 0.152
+Point 1	0.213 0.162 0.148
+Point 2	0.213 0.149 0.148
+Point 3	0.218 0.130 0.151
+Point 4	0.236 0.119 0.163
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -33104,13 +33105,13 @@ Rest length: 0.396
 Opt fiber length: 0.049
 Tendon slack length: 0.345
 Number of points: 7
-Point 0	0.364 0.380 0.156
-Point 1	0.250 0.141 0.148
-Point 2	0.250 0.129 0.148
-Point 3	0.256 0.108 0.150
-Point 4	0.277 0.091 0.157
-Point 5	0.293 0.083 0.141
-Point 6	0.329 0.077 0.112
+Point 0	0.350 0.386 0.156
+Point 1	0.211 0.160 0.148
+Point 2	0.210 0.148 0.148
+Point 3	0.214 0.127 0.150
+Point 4	0.234 0.108 0.157
+Point 5	0.249 0.099 0.141
+Point 6	0.284 0.089 0.112
 Number of segments: 6
 Number of muscle wrappings: 0
 
@@ -33121,9 +33122,9 @@ Rest length: 0.178
 Opt fiber length: 0.079
 Tendon slack length: 0.100
 Number of points: 3
-Point 0	0.320 0.264 0.143
-Point 1	0.295 0.138 0.135
-Point 2	0.297 0.099 0.159
+Point 0	0.294 0.275 0.143
+Point 1	0.256 0.153 0.135
+Point 2	0.254 0.114 0.159
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33134,12 +33135,12 @@ Rest length: 0.442
 Opt fiber length: 0.102
 Tendon slack length: 0.345
 Number of points: 6
-Point 0	0.373 0.396 0.147
-Point 1	0.303 0.142 0.127
-Point 2	0.307 0.113 0.129
-Point 3	0.368 0.066 0.144
-Point 4	0.384 0.060 0.148
-Point 5	0.426 0.046 0.159
+Point 0	0.361 0.401 0.147
+Point 1	0.264 0.155 0.127
+Point 2	0.266 0.127 0.129
+Point 3	0.322 0.075 0.144
+Point 4	0.337 0.067 0.148
+Point 5	0.378 0.050 0.159
 Number of segments: 5
 Number of muscle wrappings: 0
 
@@ -33150,13 +33151,13 @@ Rest length: 0.410
 Opt fiber length: 0.111
 Tendon slack length: 0.305
 Number of points: 7
-Point 0	0.357 0.361 0.142
-Point 1	0.307 0.143 0.111
-Point 2	0.312 0.111 0.108
-Point 3	0.342 0.097 0.104
-Point 4	0.382 0.071 0.103
-Point 5	0.414 0.052 0.109
-Point 6	0.439 0.046 0.115
+Point 0	0.341 0.368 0.142
+Point 1	0.269 0.156 0.111
+Point 2	0.271 0.125 0.108
+Point 3	0.299 0.108 0.104
+Point 4	0.336 0.078 0.104
+Point 5	0.366 0.057 0.109
+Point 6	0.391 0.048 0.116
 Number of segments: 6
 Number of muscle wrappings: 0
 
@@ -33240,8 +33241,8 @@ Opt fiber length: 0.080
 Tendon slack length: 0.359
 Number of points: 3
 Point 0	0.491 0.873 -0.036
-Point 1	0.680 0.500 -0.029
-Point 2	0.691 0.490 -0.028
+Point 1	0.683 0.498 -0.029
+Point 2	0.695 0.489 -0.028
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33253,10 +33254,10 @@ Opt fiber length: 0.201
 Tendon slack length: 0.256
 Number of points: 5
 Point 0	0.484 0.860 -0.024
-Point 1	0.671 0.504 -0.025
-Point 2	0.687 0.483 -0.025
-Point 3	0.714 0.468 -0.023
-Point 4	0.733 0.452 -0.028
+Point 1	0.674 0.501 -0.025
+Point 2	0.691 0.482 -0.025
+Point 3	0.719 0.469 -0.023
+Point 4	0.740 0.455 -0.028
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -33268,8 +33269,8 @@ Opt fiber length: 0.109
 Tendon slack length: 0.326
 Number of points: 3
 Point 0	0.484 0.867 -0.033
-Point 1	0.685 0.500 -0.077
-Point 2	0.697 0.483 -0.082
+Point 1	0.688 0.499 -0.077
+Point 2	0.701 0.482 -0.082
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33281,8 +33282,8 @@ Opt fiber length: 0.173
 Tendon slack length: 0.089
 Number of points: 3
 Point 0	0.633 0.715 -0.071
-Point 1	0.685 0.500 -0.077
-Point 2	0.697 0.483 -0.082
+Point 1	0.688 0.499 -0.077
+Point 2	0.701 0.482 -0.082
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33295,9 +33296,9 @@ Tendon slack length: 0.100
 Number of points: 5
 Point 0	0.595 0.969 -0.088
 Point 1	0.687 0.579 -0.005
-Point 2	0.710 0.501 -0.008
-Point 3	0.726 0.488 -0.009
-Point 4	0.750 0.469 -0.022
+Point 2	0.713 0.502 -0.008
+Point 3	0.730 0.490 -0.009
+Point 4	0.756 0.473 -0.022
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -33371,7 +33372,7 @@ Number of points: 4
 Point 0	0.579 0.991 -0.088
 Point 1	0.608 0.826 -0.107
 Point 2	0.715 0.539 -0.083
-Point 3	0.723 0.498 -0.077
+Point 3	0.726 0.500 -0.077
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -33395,9 +33396,9 @@ Opt fiber length: 0.352
 Tendon slack length: 0.126
 Number of points: 4
 Point 0	0.536 0.851 0.008
-Point 1	0.687 0.505 -0.010
-Point 2	0.699 0.488 -0.012
-Point 3	0.733 0.464 -0.025
+Point 1	0.690 0.504 -0.010
+Point 2	0.703 0.488 -0.012
+Point 3	0.739 0.467 -0.025
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -33519,7 +33520,7 @@ Tendon slack length: 0.310
 Number of points: 3
 Point 0	0.581 0.939 -0.061
 Point 1	0.740 0.553 -0.049
-Point 2	0.757 0.580 -0.049
+Point 2	0.753 0.585 -0.049
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33534,7 +33535,7 @@ Point 0	0.641 0.720 -0.066
 Point 1	0.689 0.668 -0.048
 Point 2	0.744 0.553 -0.035
 Point 3	0.744 0.530 -0.034
-Point 4	0.752 0.580 -0.033
+Point 4	0.747 0.584 -0.033
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -33548,7 +33549,7 @@ Number of points: 4
 Point 0	0.647 0.742 -0.079
 Point 1	0.658 0.729 -0.076
 Point 2	0.741 0.553 -0.053
-Point 3	0.750 0.583 -0.049
+Point 3	0.746 0.587 -0.049
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -33563,7 +33564,7 @@ Point 0	0.622 0.738 -0.082
 Point 1	0.673 0.680 -0.088
 Point 2	0.742 0.554 -0.068
 Point 3	0.742 0.530 -0.066
-Point 4	0.756 0.579 -0.064
+Point 4	0.752 0.583 -0.064
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -33576,7 +33577,7 @@ Tendon slack length: 0.390
 Number of points: 3
 Point 0	0.688 0.540 -0.024
 Point 1	0.682 0.527 -0.022
-Point 2	0.777 0.108 -0.051
+Point 2	0.812 0.121 -0.051
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33589,7 +33590,7 @@ Tendon slack length: 0.380
 Number of points: 3
 Point 0	0.686 0.537 -0.075
 Point 1	0.682 0.527 -0.075
-Point 2	0.777 0.108 -0.051
+Point 2	0.812 0.121 -0.051
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33600,8 +33601,8 @@ Rest length: 0.291
 Opt fiber length: 0.050
 Tendon slack length: 0.250
 Number of points: 2
-Point 0	0.744 0.395 -0.055
-Point 1	0.777 0.108 -0.051
+Point 0	0.756 0.399 -0.055
+Point 1	0.812 0.121 -0.051
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33612,10 +33613,10 @@ Rest length: 0.345
 Opt fiber length: 0.031
 Tendon slack length: 0.310
 Number of points: 4
-Point 0	0.732 0.411 -0.049
-Point 1	0.802 0.150 -0.025
-Point 2	0.817 0.120 -0.027
-Point 3	0.856 0.111 -0.027
+Point 0	0.743 0.414 -0.049
+Point 1	0.835 0.160 -0.025
+Point 2	0.851 0.132 -0.027
+Point 3	0.890 0.122 -0.026
 Number of segments: 3
 Number of muscle wrappings: 0
 
@@ -33626,14 +33627,14 @@ Rest length: 0.433
 Opt fiber length: 0.034
 Tendon slack length: 0.400
 Number of points: 8
-Point 0	0.752 0.344 -0.046
-Point 1	0.801 0.149 -0.028
-Point 2	0.819 0.119 -0.027
-Point 3	0.849 0.111 -0.029
-Point 4	0.948 0.107 -0.066
-Point 5	0.959 0.108 -0.070
-Point 6	0.989 0.115 -0.076
-Point 7	1.004 0.120 -0.079
+Point 0	0.769 0.349 -0.046
+Point 1	0.834 0.159 -0.028
+Point 2	0.854 0.131 -0.027
+Point 3	0.883 0.123 -0.028
+Point 4	0.983 0.117 -0.063
+Point 5	0.994 0.118 -0.067
+Point 6	1.024 0.125 -0.073
+Point 7	1.039 0.129 -0.075
 Number of segments: 7
 Number of muscle wrappings: 0
 
@@ -33644,13 +33645,13 @@ Rest length: 0.420
 Opt fiber length: 0.043
 Tendon slack length: 0.380
 Number of points: 7
-Point 0	0.761 0.317 -0.072
-Point 1	0.798 0.146 -0.030
-Point 2	0.814 0.113 -0.031
-Point 3	0.884 0.108 -0.029
-Point 4	0.953 0.111 -0.027
-Point 5	0.975 0.113 -0.028
-Point 6	1.016 0.119 -0.036
+Point 0	0.779 0.322 -0.072
+Point 1	0.832 0.156 -0.030
+Point 2	0.849 0.125 -0.031
+Point 3	0.918 0.119 -0.028
+Point 4	0.988 0.122 -0.024
+Point 5	1.009 0.123 -0.025
+Point 6	1.050 0.128 -0.032
 Number of segments: 6
 Number of muscle wrappings: 0
 
@@ -33661,9 +33662,9 @@ Rest length: 0.304
 Opt fiber length: 0.098
 Tendon slack length: 0.223
 Number of points: 3
-Point 0	0.766 0.392 -0.059
-Point 1	0.844 0.172 -0.030
-Point 2	0.894 0.121 -0.024
+Point 0	0.778 0.398 -0.059
+Point 1	0.875 0.186 -0.030
+Point 2	0.928 0.133 -0.023
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33674,11 +33675,11 @@ Rest length: 0.211
 Opt fiber length: 0.050
 Tendon slack length: 0.161
 Number of points: 5
-Point 0	0.770 0.287 -0.080
-Point 1	0.800 0.135 -0.076
-Point 2	0.808 0.126 -0.076
-Point 3	0.824 0.115 -0.079
-Point 4	0.846 0.114 -0.089
+Point 0	0.791 0.294 -0.080
+Point 1	0.834 0.145 -0.076
+Point 2	0.844 0.137 -0.076
+Point 3	0.860 0.127 -0.079
+Point 4	0.881 0.126 -0.089
 Number of segments: 4
 Number of muscle wrappings: 0
 
@@ -33689,13 +33690,13 @@ Rest length: 0.396
 Opt fiber length: 0.049
 Tendon slack length: 0.345
 Number of points: 7
-Point 0	0.748 0.393 -0.084
-Point 1	0.800 0.133 -0.076
-Point 2	0.807 0.124 -0.076
-Point 3	0.822 0.110 -0.077
-Point 4	0.849 0.103 -0.083
-Point 5	0.866 0.104 -0.067
-Point 6	0.899 0.113 -0.036
+Point 0	0.760 0.397 -0.084
+Point 1	0.834 0.143 -0.076
+Point 2	0.843 0.134 -0.076
+Point 3	0.857 0.122 -0.077
+Point 4	0.884 0.115 -0.083
+Point 5	0.901 0.115 -0.066
+Point 6	0.934 0.124 -0.035
 Number of segments: 6
 Number of muscle wrappings: 0
 
@@ -33706,9 +33707,9 @@ Rest length: 0.178
 Opt fiber length: 0.079
 Tendon slack length: 0.100
 Number of points: 3
-Point 0	0.782 0.274 -0.071
-Point 1	0.838 0.158 -0.063
-Point 2	0.863 0.119 -0.085
+Point 0	0.804 0.282 -0.071
+Point 1	0.870 0.172 -0.063
+Point 2	0.898 0.131 -0.084
 Number of segments: 2
 Number of muscle wrappings: 0
 
@@ -33719,12 +33720,12 @@ Rest length: 0.442
 Opt fiber length: 0.102
 Tendon slack length: 0.345
 Number of points: 6
-Point 0	0.745 0.411 -0.075
-Point 1	0.842 0.166 -0.055
-Point 2	0.866 0.136 -0.055
-Point 3	0.941 0.119 -0.067
-Point 4	0.958 0.120 -0.070
-Point 5	1.003 0.125 -0.080
+Point 0	0.756 0.415 -0.075
+Point 1	0.874 0.179 -0.055
+Point 2	0.900 0.148 -0.054
+Point 3	0.976 0.130 -0.065
+Point 4	0.993 0.131 -0.068
+Point 5	1.038 0.135 -0.076
 Number of segments: 5
 Number of muscle wrappings: 0
 
@@ -33735,13 +33736,13 @@ Rest length: 0.410
 Opt fiber length: 0.111
 Tendon slack length: 0.305
 Number of points: 7
-Point 0	0.754 0.374 -0.070
-Point 1	0.845 0.169 -0.039
-Point 2	0.870 0.138 -0.034
-Point 3	0.903 0.137 -0.029
-Point 4	0.950 0.130 -0.026
-Point 5	0.987 0.127 -0.030
-Point 6	1.013 0.132 -0.036
+Point 0	0.767 0.379 -0.070
+Point 1	0.876 0.183 -0.039
+Point 2	0.904 0.149 -0.033
+Point 3	0.938 0.148 -0.027
+Point 4	0.984 0.141 -0.023
+Point 5	1.021 0.137 -0.027
+Point 6	1.047 0.142 -0.032
 Number of segments: 6
 Number of muscle wrappings: 0
 

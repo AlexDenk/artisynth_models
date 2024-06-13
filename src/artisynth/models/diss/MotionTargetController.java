@@ -68,8 +68,6 @@ public class MotionTargetController extends TrackingController {
    StringBuilder message = new StringBuilder ();
    // Writer variable, that tracks, whether the writer was active before
    boolean isWriterActive;
-   // Check if force targets are used by this controller
-   boolean hasForceTargets = false;
    // Experimental force data, necessary for the COP
    ForceData myForces;
    // Map, that matches the name of the model marker to the corresponding
@@ -90,7 +88,7 @@ public class MotionTargetController extends TrackingController {
 
    // ------------------------------Nested Classes------------------------------
    /**
-    * Renders the experimental COP from ForceData
+    * Renders the experimental COP from ForceData.
     * 
     * @author Alexander Denk
     */

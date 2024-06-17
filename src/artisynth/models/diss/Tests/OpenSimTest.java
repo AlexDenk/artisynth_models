@@ -27,6 +27,7 @@ import artisynth.core.inverse.ForceTarget;
 import artisynth.core.inverse.FrameExciter;
 import artisynth.core.inverse.FrameExciter.WrenchComponent;
 import artisynth.core.inverse.MotionTargetTerm;
+import artisynth.core.inverse.TrackingController;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
@@ -111,7 +112,7 @@ public class OpenSimTest extends RootModel {
    String myName = null;
    // Scale of the model.
    int myScale;
-   
+
    // ----------------------------Nested classes--------------------------------
 
    public class MomentArmFunction implements DataFunction, Clonable {
@@ -119,10 +120,27 @@ public class OpenSimTest extends RootModel {
       Frame myFrame;
       // cop identifier (left or right)
       String mySide;
-
+      // PrintWriter to write computed wrenches to a file
+      PrintWriter writer;
+      // Name of the file, where computed wrenches are written to
+      String msgName;
+      // Path to the file, where computed wrenches are written to
+      String msgPath;
+      
       public MomentArmFunction (Frame frame, String side) {
          this.myFrame = frame;
          this.mySide = side;
+         // initialize writer
+         this.msgName = myName + "/Output/" + myName + "_message_file.txt";
+         this.msgPath =
+            ArtisynthPath
+               .getSrcRelativePath (OpenSimTest.class, msgName).toString ();
+         try {
+            writer = new PrintWriter (new FileWriter (msgPath, true));
+         }
+         catch (IOException e) {
+            e.printStackTrace ();
+         }
       }
 
       public Object clone () throws CloneNotSupportedException {
@@ -145,11 +163,24 @@ public class OpenSimTest extends RootModel {
          Vector3d momRes = new Vector3d ();
          momRes.cross (arm, grf);
          momRes.add (grm);
-         myFrame
-            .setExternalForce (
-               new Wrench (
-                  vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
-                  momRes.z));
+         // apply wrench
+         Wrench wrench =
+            new Wrench (
+               vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
+               momRes.z);
+         myFrame.setExternalForce (wrench);
+         // add wrench to message file
+         writeToFile (wrench);
+      }
+
+      private void writeToFile (Wrench wrench) {
+         StringBuilder message = new StringBuilder ();
+         message
+            .append ("\nCOMPUTED WRENCH FOR: ")
+            .append (myFrame.getName ().toUpperCase ()).append ("\n");
+         message.append (wrench.toString ("%.3f")).append ("\n");
+         writer.print (message);
+         writer.flush ();
       }
    }
 
@@ -1367,7 +1398,7 @@ public class OpenSimTest extends RootModel {
     */
    private void setSimulationProperties () {
       MechSystemSolver solver = myMech.getSolver ();
-      solver.setIntegrator (Integrator.ConstrainedBackwardEuler);
+      solver.setIntegrator (Integrator.Trapezoidal);
       // Use global stiffness, since more accurate and stable
       solver.setStabilization (PosStabilization.GlobalStiffness);
       setAdaptiveStepping (true);
@@ -1499,9 +1530,10 @@ public class OpenSimTest extends RootModel {
          .append (
             "%%------------------------------------------------------------%%\n")
          .append ("\nBODIES\n").append ("Model: ").append (path).append ("\n")
-         .append ("Number of bodies: ").append (bodies.size ()).append("\n")
-         .append ("Total model mass: ").append (myMech.getActiveMass ()).
-         append (" kg\n\n");
+         .append ("Number of bodies: ").append (bodies.size ()).append ("\n")
+         .append ("Total model mass: ")
+         .append (String.format ("%.1f", myMech.getActiveMass ()))
+         .append (" kg\n\n");
       // Identify unclosed meshes before appending individual info about each
       // body
       bodies.forEach (rb -> {

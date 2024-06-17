@@ -9,7 +9,7 @@
 %%------------------------------------------------------------%%
 
 SOLVER
-Integrator: ConstrainedBackwardEuler
+Integrator: Trapezoidal
 Stabilization: GlobalStiffness
 Max Iterations: 20
 Matrix Solver: Pardiso
@@ -27,7 +27,7 @@ Gravity: 0.0 -9.80665 0.0
 BODIES
 Model: OpenSimTest/gait2392_simbody_scaled.osim
 Number of bodies: 12
-Total model mass: 72.60000000000001 kg
+Total model mass: 72.6 kg
 
 Unclosed Mesh found: pelvis
 Unclosed Mesh found: calcn_r

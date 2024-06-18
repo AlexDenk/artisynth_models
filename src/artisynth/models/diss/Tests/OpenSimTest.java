@@ -75,6 +75,7 @@ import maspack.matrix.AxisAlignedRotation;
 import maspack.matrix.Point3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
+import maspack.properties.Property;
 import maspack.render.RenderList;
 import maspack.render.RenderProps;
 import maspack.render.Renderer.FaceStyle;
@@ -602,88 +603,28 @@ public class OpenSimTest extends RootModel {
    private void addNumOutputProbesAndPanel (
       MarkerMotionData motion, TrackingController controller) {
       // Define a control panel and add a widget for each output property
-      ControlPanel panel = new ControlPanel ("Joint Coordinates");
+      ControlPanel jointPanel = new ControlPanel ("Joint Coordinates");
       // Define Output Probes
       double start = motion.getFrameTime (0);
       double stop = motion.getFrameTime (motion.numFrames () - 1);
       double step = getMaxStepSize ();
       myJoints.forEach (jt -> {
-         switch (jt.getName ()) {
-            case "ground_pelvis":
-               createProbeAndPanel (
-                  jt, panel, "pelvis_tilt", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "pelvis_list", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "pelvis_rotation", start, stop, step);
-               createProbeAndPanel (jt, panel, "pelvis_tx", start, stop, step);
-               createProbeAndPanel (jt, panel, "pelvis_ty", start, stop, step);
-               createProbeAndPanel (jt, panel, "pelvis_tz", start, stop, step);
-               break;
-            case "hip_r":
-               createProbeAndPanel (
-                  jt, panel, "hip_flexion_r", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_adduction_r", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_rotation_r", start, stop, step);
-               break;
-            case "knee_r":
-               createProbeAndPanel (
-                  jt, panel, "knee_angle_r", start, stop, step);
-               break;
-            case "ankle_r":
-               createProbeAndPanel (
-                  jt, panel, "ankle_angle_r", start, stop, step);
-               break;
-            case "subtalar_r":
-               createProbeAndPanel (
-                  jt, panel, "subtalar_angle_r", start, stop, step);
-               break;
-            case "mtp_r":
-               createProbeAndPanel (
-                  jt, panel, "mtp_angle_r", start, stop, step);
-               break;
-            case "hip_l":
-               createProbeAndPanel (
-                  jt, panel, "hip_flexion_l", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_adduction_l", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_rotation_l", start, stop, step);
-               break;
-            case "knee_l":
-               createProbeAndPanel (
-                  jt, panel, "knee_angle_l", start, stop, step);
-               break;
-            case "ankle_l":
-               createProbeAndPanel (
-                  jt, panel, "ankle_angle_l", start, stop, step);
-               break;
-            case "subtalar_l":
-               createProbeAndPanel (
-                  jt, panel, "subtalar_angle_l", start, stop, step);
-               break;
-            case "mtp_l":
-               createProbeAndPanel (
-                  jt, panel, "mtp_angle_l", start, stop, step);
-               break;
-            case "back":
-               createProbeAndPanel (
-                  jt, panel, "lumbar_extension", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "lumbar_bending", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "lumbar_rotation", start, stop, step);
-               break;
+         for (int i = 0; i < jt.numCoordinates (); i++) {
+            createProbeAndPanel (
+               jt, jointPanel, jt.getCoordinateName (i), start, stop, step);
          }
       });
+      ControlPanel musclePanel = new ControlPanel ("Muscle Excitations");
       controller.getExciters ().forEach (e -> {
          if (e instanceof FrameExciter) {
             createProbeAndPanel (e, null, "excitation", start, stop, step);
          }
+         else {
+            musclePanel.addWidget (e.getName (), e, "excitation");
+         }
       });
-      addControlPanel (panel);
+      addControlPanel (jointPanel);
+      addControlPanel (musclePanel);
    }
 
    /**
@@ -815,6 +756,7 @@ public class OpenSimTest extends RootModel {
                + ".txt");
       NumericOutputProbe probe =
          new NumericOutputProbe (comp, prop, filepath, step);
+
       if (panel != null) {
          panel.addWidget (comp, prop);
          probe.setName (prop);
@@ -873,7 +815,6 @@ public class OpenSimTest extends RootModel {
       // MotionTargetController motcon =
       // new MotionTargetController (myMech, "Motion controller", name);
       // motcon.addMotionData (motion, map);
-
       motcon.addL2RegularizationTerm ();
       // Calculate the duration in seconds from the number of frames
       double duration =
@@ -1769,7 +1710,7 @@ public class OpenSimTest extends RootModel {
             "%%------------------------------------------------------------%%\n")
          .append ("\nCONTROLLER INFORMATION\n").append ("Use motion targets : ")
          .append (controller.getMotionTargetTerm ().isEnabled ()).append ("\n")
-         .append ("\n").append ("Use regularization: ")
+         .append ("Use regularization: ")
          .append (controller.getL2RegularizationTerm ().isEnabled ())
          .append ("\n").append ("Use KKT Factorization: ")
          .append (controller.getUseKKTFactorization ()).append ("\n")

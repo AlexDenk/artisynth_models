@@ -33850,7 +33850,6 @@ Number of muscle wrappings: 0
 
 CONTROLLER INFORMATION
 Use motion targets : true
-
 Use regularization: true
 Use KKT Factorization: false
 Incremental computation: false

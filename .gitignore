@@ -44,6 +44,7 @@ CVS
 # Log files
 ######################
 *.log
+*.txt
 
 ######################
 # Project files
@@ -55,5 +56,3 @@ CVS
 # MacOS files
 ######################
 .DS_Store
-*.txt
-*.txt

@@ -213,11 +213,10 @@ public class OpenSimTest extends RootModel {
       initializeOsim (myName, myScale);
       // initializeFEM();
       CollisionManager collMan = myMech.getCollisionManager ();
-      collMan.setName ("Collision manager");
       setContactProps (collMan);
       defineIOProbes (myName, myScale);
       setRenderProps (collMan, myScale); 
-      //writeInputToFile (myName);
+      writeInputToFile (myName);
    }
 
    @Override
@@ -780,8 +779,6 @@ public class OpenSimTest extends RootModel {
       behavior = myMech.setCollisionBehavior (bodyA, bodyB, true);
       behavior.setCompliance (comp);
       behavior.setDamping (damp);
-      // Additional method to reduce overconstrained contact.
-      behavior.setBilateralVertexContact (false);
       myMech.setCollisionResponse (bodyA, bodyB);
    }
 
@@ -868,7 +865,11 @@ public class OpenSimTest extends RootModel {
 
          }
       }
+
+      //MotionTargetController motcon =
+      //   new MotionTargetController (myMech, "Motion controller", name);
       //motcon.addMotionData (motion, map);
+      
       motcon.addL2RegularizationTerm ();
       // Calculate the duration in seconds from the number of frames
       double duration =
@@ -896,8 +897,10 @@ public class OpenSimTest extends RootModel {
       myMotion = readTRCFile (name, scale);
       myForces = readMOTFile (name);
       myMap = readMarkerFile (name);
+
       TrackingController controller =
-         defineControllerAndProps (myMotion, myMap, name);
+         defineControllerAndProps (
+            myMotion, myMap, name);
       addExcitersToController (controller);
       addMotionTargetsToController (controller, myMap);
       controller.createProbesAndPanel (this);
@@ -1393,7 +1396,10 @@ public class OpenSimTest extends RootModel {
     * @throws
     */
    private void setContactProps (CollisionManager coll) throws IOException {
+      coll.setName ("Collision manager");
+      // Handlee overconstrained contact
       coll.setReduceConstraints (true);
+      coll.setBilateralVertexContact (false);
       myJoints.forEach (jt -> {
          if (jt.getName ().contains ("pelvis")) {
             return;

@@ -63,7 +63,8 @@ import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
 import artisynth.models.diss.ContactMonitor;
 import artisynth.models.diss.MOTReader;
-import artisynth.models.diss.MOTReader.ForceData;
+import artisynth.models.diss.ForceData;
+import artisynth.models.diss.CoordinateData;
 import artisynth.models.diss.MarkerMapping;
 import artisynth.models.diss.MotionTargetController;
 
@@ -87,8 +88,12 @@ import maspack.util.DoubleInterval;
 import maspack.util.PathFinder;
 
 /**
- * @author Alexander Denk Copyright (c) 2023-2024, by the Author: Alexander Denk
- * (UDE) University of Duisburg-Essen Chair of Mechanics and Robotics
+ * @author Alexander Denk Copyright (c) 2023-2024
+ * <br>
+ * (UDE) University of Duisburg-Essen
+ * <br>
+ * Chair of Mechanics and Robotics
+ * <br>
  * alexander.denk@uni-due.de
  */
 

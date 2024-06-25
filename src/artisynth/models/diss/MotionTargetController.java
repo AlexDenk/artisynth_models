@@ -26,7 +26,7 @@ import artisynth.core.probes.MarkerMotionData;
 import artisynth.core.probes.NumericInputProbe;
 import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
-import artisynth.models.diss.MOTReader.ForceData;
+import artisynth.models.diss.ForceData;
 import artisynth.models.diss.Tests.*;
 
 import maspack.geometry.Face;

@@ -10,7 +10,7 @@ import artisynth.core.mechmodels.RigidBody;
 import artisynth.core.probes.NumericInputProbe;
 import artisynth.core.util.ArtisynthPath;
 import artisynth.models.diss.MOTReader;
-import artisynth.models.diss.MOTReader.ForceData;
+import artisynth.models.diss.ForceData;
 import artisynth.models.diss.MotionTargetController;
 import maspack.matrix.Point3d;
 import maspack.matrix.RigidTransform3d;

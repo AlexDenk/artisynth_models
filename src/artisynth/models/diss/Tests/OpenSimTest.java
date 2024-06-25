@@ -63,7 +63,7 @@ import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
 import artisynth.models.diss.ContactMonitor;
 import artisynth.models.diss.MOTReader;
-import artisynth.models.diss.MOTReader.ForceData;
+import artisynth.models.diss.ForceData;
 import artisynth.models.diss.MarkerMapping;
 import artisynth.models.diss.MotionTargetController;
 

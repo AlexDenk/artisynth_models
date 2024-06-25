@@ -20,7 +20,8 @@ public class MOTReader {
    protected File myFile;
    protected ForceData myForces = new ForceData ();
    protected CoordinateData myCoords = new CoordinateData ();
-   protected boolean inDegrees;
+   protected boolean coordsInDegrees;
+   protected boolean forcesInDegrees;
 
    // ------------------------------Constructors-------------------------------
    public MOTReader () {
@@ -35,6 +36,12 @@ public class MOTReader {
       myFile = file;
    }
 
+   // --------------------------Static Methods---------------------------------
+   public static void main (String[] args) {
+
+   }
+
+   // -------------------------Instance Methods--------------------------------
    private void closeQuietly (InputStream in) {
       if (in != null) {
          try {
@@ -49,20 +56,36 @@ public class MOTReader {
       closeQuietly (myIstream);
    }
 
+   public CoordinateData getCoordinateData () {
+      return myCoords;
+   }
+
    public ForceData getForceData () {
       return myForces;
    }
 
-   public int getNumFrames () {
+   public int getNumCoordFrames () {
+      return myCoords.numFrames ();
+   }
+
+   public int getNumForceFrames () {
       return myForces.numFrames ();
    }
 
-   public int getNumLabels () {
+   public int getNumCoordLabels () {
+      return myCoords.numLabels ();
+   }
+
+   public int getNumForceLabels () {
       return myForces.numLabels ();
    }
 
-   public boolean getInDegrees () {
-      return inDegrees;
+   public boolean getCoordsInDegrees () {
+      return coordsInDegrees;
+   }
+
+   public boolean getForcesInDegrees () {
+      return forcesInDegrees;
    }
 
    public int scanDataHeader (BufferedReader reader) throws IOException {
@@ -84,7 +107,7 @@ public class MOTReader {
             else if (line.contains ("Degrees")) {
                String[] tokens = line.split ("=");
                if (tokens[1].contains ("yes")) {
-                  inDegrees = true;
+                  forcesInDegrees = true;
                }
             }
             else if (line.contains ("time")) {
@@ -146,7 +169,7 @@ public class MOTReader {
       return numFrames;
    }
 
-   public void scanForceData (BufferedReader reader) throws IOException {
+   public void scanMOTData (BufferedReader reader) throws IOException {
       int numLine = 7;
       String line;
 
@@ -180,14 +203,8 @@ public class MOTReader {
    public void readData () throws IOException {
       BufferedReader reader =
          new BufferedReader (new InputStreamReader (myIstream));
-      // ReaderTokenizer rtok = new ReaderTokenizer (reader);
-      // rtok.eolIsSignificant (true);
       scanDataHeader (reader);
-      scanForceData (reader);
+      scanMOTData (reader);
       reader.close ();
-   }
-
-   public static void main (String[] args) {
-
    }
 }

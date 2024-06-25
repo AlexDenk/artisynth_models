@@ -1285,9 +1285,11 @@ public class OpenSimTest extends RootModel {
       motReader.readData ();
       // Print reading details to the console
       System.out
-         .println ("Experimental force data: " + motReader.getNumLabels ());
+         .println (
+            "Experimental force data: " + motReader.getNumForceLabels ());
       System.out
-         .println ("MOT file: read " + motReader.getNumFrames () + " frames");
+         .println (
+            "MOT file: read " + motReader.getNumForceFrames () + " frames");
       return motReader.getForceData ();
    }
 

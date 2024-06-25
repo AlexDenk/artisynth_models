@@ -48,7 +48,7 @@ Artisynth Modeling Guide
 
 4.1 Simulation control properties
 4.2 Units
-4.8 Custom Joints
+4.9 Custom Joints
 
 5.3 Controllers and monitors
 5.4 Probes

@@ -63,8 +63,7 @@ import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
 import artisynth.models.diss.ContactMonitor;
 import artisynth.models.diss.MOTReader;
-import artisynth.models.diss.ForceData;
-import artisynth.models.diss.CoordinateData;
+import artisynth.models.diss.MOTReader.ForceData;
 import artisynth.models.diss.MarkerMapping;
 import artisynth.models.diss.MotionTargetController;
 
@@ -76,6 +75,7 @@ import maspack.matrix.AxisAlignedRotation;
 import maspack.matrix.Point3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
+import maspack.properties.Property;
 import maspack.render.RenderList;
 import maspack.render.RenderProps;
 import maspack.render.Renderer.FaceStyle;
@@ -89,11 +89,11 @@ import maspack.util.PathFinder;
 
 /**
  * @author Alexander Denk Copyright (c) 2023-2024
- * <br>
- * (UDE) University of Duisburg-Essen
- * <br>
+ * <p>
+ * (UDE) University of Duisburg-Essen 
+ * <p>
  * Chair of Mechanics and Robotics
- * <br>
+ * <p>
  * alexander.denk@uni-due.de
  */
 
@@ -135,7 +135,7 @@ public class OpenSimTest extends RootModel {
       String msgName;
       // Path to the file, where computed wrenches are written to
       String msgPath;
-      
+
       public MomentArmFunction (Frame frame, String side) {
          this.myFrame = frame;
          this.mySide = side;
@@ -220,7 +220,7 @@ public class OpenSimTest extends RootModel {
       CollisionManager collMan = myMech.getCollisionManager ();
       setContactProps (collMan);
       defineIOProbes (myName, myScale);
-      setRenderProps (collMan, myScale); 
+      setRenderProps (collMan, myScale);
       writeInputToFile (myName);
    }
 
@@ -446,7 +446,6 @@ public class OpenSimTest extends RootModel {
 
    // --------------------------Private Instance Methods------------------------
 
-   
    private void addExcitersToController (TrackingController controller) {
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
@@ -467,7 +466,7 @@ public class OpenSimTest extends RootModel {
       createAndAddFrameExciters (
          controller, myMech, pelvis, maxForce, maxMoment);
    }
-   
+
    /**
     * Defines n ({@code list.size())} {@link NumericInputProbe}s for the
     * specified bodies in {@code list} and fills it with the force data in
@@ -482,7 +481,8 @@ public class OpenSimTest extends RootModel {
     * @param forces
     * {@link ForceTarget} object containing the experimental forces
     */
-   private void addForceInputProbe (ForceData forces, Frame frame, String side) {
+   private void addForceInputProbe (
+      ForceData forces, Frame frame, String side) {
       NumericControlProbe grf = new NumericControlProbe ();
       grf.setModel (myMech);
       grf.setName (frame.getName () + " ground reaction forces");
@@ -523,7 +523,7 @@ public class OpenSimTest extends RootModel {
       RigidBody calcnL = myBodies.get ("calcn_l");
       addForceInputProbe (forces, calcnL, "Left");
    }
-   
+
    /**
     * Adds the data stored in {@code motion} to the input probes of the
     * MotionTargetController, if available.
@@ -603,88 +603,28 @@ public class OpenSimTest extends RootModel {
    private void addNumOutputProbesAndPanel (
       MarkerMotionData motion, TrackingController controller) {
       // Define a control panel and add a widget for each output property
-      ControlPanel panel = new ControlPanel ("Joint Coordinates");
+      ControlPanel jointPanel = new ControlPanel ("Joint Coordinates");
       // Define Output Probes
       double start = motion.getFrameTime (0);
       double stop = motion.getFrameTime (motion.numFrames () - 1);
       double step = getMaxStepSize ();
       myJoints.forEach (jt -> {
-         switch (jt.getName ()) {
-            case "ground_pelvis":
-               createProbeAndPanel (
-                  jt, panel, "pelvis_tilt", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "pelvis_list", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "pelvis_rotation", start, stop, step);
-               createProbeAndPanel (jt, panel, "pelvis_tx", start, stop, step);
-               createProbeAndPanel (jt, panel, "pelvis_ty", start, stop, step);
-               createProbeAndPanel (jt, panel, "pelvis_tz", start, stop, step);
-               break;
-            case "hip_r":
-               createProbeAndPanel (
-                  jt, panel, "hip_flexion_r", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_adduction_r", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_rotation_r", start, stop, step);
-               break;
-            case "knee_r":
-               createProbeAndPanel (
-                  jt, panel, "knee_angle_r", start, stop, step);
-               break;
-            case "ankle_r":
-               createProbeAndPanel (
-                  jt, panel, "ankle_angle_r", start, stop, step);
-               break;
-            case "subtalar_r":
-               createProbeAndPanel (
-                  jt, panel, "subtalar_angle_r", start, stop, step);
-               break;
-            case "mtp_r":
-               createProbeAndPanel (
-                  jt, panel, "mtp_angle_r", start, stop, step);
-               break;
-            case "hip_l":
-               createProbeAndPanel (
-                  jt, panel, "hip_flexion_l", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_adduction_l", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "hip_rotation_l", start, stop, step);
-               break;
-            case "knee_l":
-               createProbeAndPanel (
-                  jt, panel, "knee_angle_l", start, stop, step);
-               break;
-            case "ankle_l":
-               createProbeAndPanel (
-                  jt, panel, "ankle_angle_l", start, stop, step);
-               break;
-            case "subtalar_l":
-               createProbeAndPanel (
-                  jt, panel, "subtalar_angle_l", start, stop, step);
-               break;
-            case "mtp_l":
-               createProbeAndPanel (
-                  jt, panel, "mtp_angle_l", start, stop, step);
-               break;
-            case "back":
-               createProbeAndPanel (
-                  jt, panel, "lumbar_extension", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "lumbar_bending", start, stop, step);
-               createProbeAndPanel (
-                  jt, panel, "lumbar_rotation", start, stop, step);
-               break;
+         for (int i = 0; i < jt.numCoordinates (); i++) {
+            createProbeAndPanel (
+               jt, jointPanel, jt.getCoordinateName (i), start, stop, step);
          }
       });
+      ControlPanel musclePanel = new ControlPanel ("Muscle Excitations");
       controller.getExciters ().forEach (e -> {
          if (e instanceof FrameExciter) {
             createProbeAndPanel (e, null, "excitation", start, stop, step);
          }
+         else {
+            musclePanel.addWidget (e.getName (), e, "excitation");
+         }
       });
-      addControlPanel (panel);
+      addControlPanel (jointPanel);
+      addControlPanel (musclePanel);
    }
 
    /**
@@ -816,6 +756,7 @@ public class OpenSimTest extends RootModel {
                + ".txt");
       NumericOutputProbe probe =
          new NumericOutputProbe (comp, prop, filepath, step);
+
       if (panel != null) {
          panel.addWidget (comp, prop);
          probe.setName (prop);
@@ -871,10 +812,9 @@ public class OpenSimTest extends RootModel {
          }
       }
 
-      //MotionTargetController motcon =
-      //   new MotionTargetController (myMech, "Motion controller", name);
-      //motcon.addMotionData (motion, map);
-      
+      // MotionTargetController motcon =
+      // new MotionTargetController (myMech, "Motion controller", name);
+      // motcon.addMotionData (motion, map);
       motcon.addL2RegularizationTerm ();
       // Calculate the duration in seconds from the number of frames
       double duration =
@@ -902,10 +842,8 @@ public class OpenSimTest extends RootModel {
       myMotion = readTRCFile (name, scale);
       myForces = readMOTFile (name);
       myMap = readMarkerFile (name);
-
       TrackingController controller =
-         defineControllerAndProps (
-            myMotion, myMap, name);
+         defineControllerAndProps (myMotion, myMap, name);
       addExcitersToController (controller);
       addMotionTargetsToController (controller, myMap);
       controller.createProbesAndPanel (this);
@@ -942,179 +880,205 @@ public class OpenSimTest extends RootModel {
 
    /**
     * Defines joint constraints based on jointsets or by defining the joints
-    * based on the rigid bodies, that are part of the model. By accessing the
-    * connectors of every body and writing them to a separate list. Connectors
-    * are defined per rigid body, a body that is connected to 3 bodies, has
-    * therefore three different connectors. The connectors in each rigid body
-    * are ordered in such a way, that each joint is exactly addressed once, if
-    * the first index of the connector list (getConnectors.get(0)) in every
-    * rigid body is accessed.
+    * based on the rigid bodies, that are part of the model.
     * 
     * @param myBodies
     * list of rigid bodies
     * @return list of {@link OpenSimCustomJoint}
     */
-   @SuppressWarnings("unchecked")
    private RenderableComponentList<JointBase> getJointsFromOsim (
       RenderableComponentList<RigidBody> myBodies) {
-      // Check whether a jointset is already apparent in the model. If so,
-      // then define joint constraints based on them. If not, retrieve them
-      // from the rigid bodies of the model.
+      double comp = 1e-5;
       if (myMech.contains (myMech.get ("jointset"))) {
          System.out.println ("Generated joint constraints from jointset.");
-         myJoints = (RenderableComponentList<JointBase>)myMech.get ("jointset");
-         DoubleInterval range = new DoubleInterval ();
-         myJoints.forEach (jt -> {
-            switch (jt.getName ()) {
-               case "ground_pelvis":
-                  range.set (-90, 90);
-                  jt.setCoordinateRangeDeg (0, range);
-                  jt.setCoordinateRangeDeg (1, range);
-                  jt.setCoordinateRangeDeg (2, range);
-                  range.set (-5, 5);
-                  jt.setCoordinateRange (3, range);
-                  range.set (-1, 2);
-                  jt.setCoordinateRange (4, range);
-                  range.set (-3, 3);
-                  jt.setCoordinateRange (5, range);
-                  break;
-               case "hip_r":
-                  range.set (-120.0, 120.0);
-                  jt.setCoordinateRangeDeg (0, range);
-                  jt.setCoordinateRangeDeg (1, range);
-                  jt.setCoordinateRangeDeg (2, range);
-                  break;
-               case "knee_r":
-                  range.set (-120.0, 10);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "ankle_r":
-                  range.set (-90, 90);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "subtalar_r":
-                  range.set (0, 0);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "mtp_r":
-                  range.set (0, 0);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "hip_l":
-                  range.set (-120.0, 120.0);
-                  jt.setCoordinateRangeDeg (0, range);
-                  jt.setCoordinateRangeDeg (1, range);
-                  jt.setCoordinateRangeDeg (2, range);
-                  break;
-               case "knee_l":
-                  range.set (-120.0, 10);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "ankle_l":
-                  range.set (-90, 90);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "subtalar_l":
-                  range.set (0, 0);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "mtp_l":
-                  range.set (0, 0);
-                  jt.setCoordinateRangeDeg (0, range);
-                  break;
-               case "back":
-                  range.set (-90, 90);
-                  jt.setCoordinateRangeDeg (0, range);
-                  jt.setCoordinateRangeDeg (1, range);
-                  jt.setCoordinateRangeDeg (2, range);
-                  break;
-            }
-         });
+         return getJointsFromJointset (comp);
+
       }
       else {
-         // Ground shares no joint with any rigid body else than the hip
-         // so skip that, since hip is going to be addressed either way.
-         myBodies.forEach (rb -> {
-            if (rb.getName ().equals ("ground")) {
-               return;
-            }
-            else {
-               System.out
-                  .println (
-                     "Generated joint constraints from ridig body connectors.");
-               // Write all joints to a joint list
-               myJoints.add ((JointBase)rb.getConnectors ().get (0));
-               int end = myJoints.size ();
-               DoubleInterval range = new DoubleInterval ();
-               switch (rb.getName ()) {
-                  // specify the joint constraints for each joint individually
-                  // by addressing the respective dof (int idx) and its range.
-                  case "pelvis":
-                     range.set (-90, 90);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
-                     range.set (-5, 5);
-                     myJoints.get (end - 1).setCoordinateRange (3, range);
-                     range.set (-1, 2);
-                     myJoints.get (end - 1).setCoordinateRange (4, range);
-                     range.set (-3, 3);
-                     myJoints.get (end - 1).setCoordinateRange (5, range);
-                     break;
-                  case "femur_r":
-                     range.set (-120.0, 120.0);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
-                     break;
-                  case "tibia_r":
-                     range.set (-120.0, 10);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "talus_r":
-                     range.set (-90, 90);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "calcn_r":
-                     range.set (0, 0);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "toes_r":
-                     range.set (0, 0);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "femur_l":
-                     range.set (-120.0, 120.0);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
-                     break;
-                  case "tibia_l":
-                     range.set (-120.0, 10);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "talus_l":
-                     range.set (-90, 90);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "calcn_l":
-                     range.set (0, 0);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "toes_l":
-                     range.set (0, 0);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     break;
-                  case "torso":
-                     range.set (-90, 90);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
-                     myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
-                     break;
-               }
-            }
-         });
+         System.out
+            .println (
+               "Generated joint constraints from ridig body connectors.");
+         return getJointsFromBodyset (comp);
       }
+   }
+
+   /**
+    * Defines joints by accessing the connectors of every body and writing them
+    * to a separate list. Connectors are defined per rigid body, a body that is
+    * connected to 3 bodies, has therefore three different connectors. The
+    * connectors in each rigid body are ordered in such a way, that each joint
+    * is exactly addressed once, if the first index of the connector list
+    * (getConnectors.get(0)) in every rigid body is accessed.
+    * 
+    * @param compMagnitude
+    * compliance magnitude
+    * @return list of {@link OpenSimCustomJoint}
+    */
+   private RenderableComponentList<JointBase> getJointsFromBodyset (
+      double compMagnitude) {
+      // Ground shares no joint with any rigid body else than the hip
+      // so skip that, since hip is going to be addressed either way.
+      myBodies.forEach (rb -> {
+         if (rb.getName ().equals ("ground")) {
+            return;
+         }
+         else {
+            // Write all joints to a joint list
+            myJoints.add ((JointBase)rb.getConnectors ().get (0));
+            int end = myJoints.size ();
+            setJointCompliance (myJoints.get (end), compMagnitude);
+            DoubleInterval range = new DoubleInterval ();
+            switch (rb.getName ()) {
+               // specify the joint constraints for each joint individually
+               // by addressing the respective dof (int idx) and its range.
+               case "pelvis":
+                  range.set (-90, 90);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
+                  range.set (-5, 5);
+                  myJoints.get (end - 1).setCoordinateRange (3, range);
+                  range.set (-1, 2);
+                  myJoints.get (end - 1).setCoordinateRange (4, range);
+                  range.set (-3, 3);
+                  myJoints.get (end - 1).setCoordinateRange (5, range);
+                  break;
+               case "femur_r":
+                  range.set (-120.0, 120.0);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
+                  break;
+               case "tibia_r":
+                  range.set (-120.0, 10);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "talus_r":
+                  range.set (-90, 90);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "calcn_r":
+                  range.set (0, 0);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "toes_r":
+                  range.set (0, 0);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "femur_l":
+                  range.set (-120.0, 120.0);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
+                  break;
+               case "tibia_l":
+                  range.set (-120.0, 10);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "talus_l":
+                  range.set (-90, 90);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "calcn_l":
+                  range.set (0, 0);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "toes_l":
+                  range.set (0, 0);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  break;
+               case "torso":
+                  range.set (-90, 90);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (0, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (1, range);
+                  myJoints.get (end - 1).setCoordinateRangeDeg (2, range);
+                  break;
+            }
+         }
+      });
+      return myJoints;
+   }
+
+   /**
+    * Defines joints by accessing the jointsets predefined by the .osim file.
+    * 
+    * @param compMagnitude
+    * compliance magnitude
+    * @return list of {@link OpenSimCustomJoint}
+    */
+   @SuppressWarnings("unchecked")
+   private RenderableComponentList<JointBase> getJointsFromJointset (
+      double compMagnitude) {
+      myJoints = (RenderableComponentList<JointBase>)myMech.get ("jointset");
+      DoubleInterval range = new DoubleInterval ();
+      myJoints.forEach (jt -> {
+         setJointCompliance (jt, compMagnitude);
+         // Define joint limits for each joint constraint
+         switch (jt.getName ()) {
+            case "ground_pelvis":
+               range.set (-90, 90);
+               jt.setCoordinateRangeDeg (0, range);
+               jt.setCoordinateRangeDeg (1, range);
+               jt.setCoordinateRangeDeg (2, range);
+               range.set (-5, 5);
+               jt.setCoordinateRange (3, range);
+               range.set (-1, 2);
+               jt.setCoordinateRange (4, range);
+               range.set (-3, 3);
+               jt.setCoordinateRange (5, range);
+               break;
+            case "hip_r":
+               range.set (-120.0, 120.0);
+               jt.setCoordinateRangeDeg (0, range);
+               jt.setCoordinateRangeDeg (1, range);
+               jt.setCoordinateRangeDeg (2, range);
+               break;
+            case "knee_r":
+               range.set (-120.0, 10);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "ankle_r":
+               range.set (-90, 90);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "subtalar_r":
+               range.set (0, 0);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "mtp_r":
+               range.set (0, 0);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "hip_l":
+               range.set (-120.0, 120.0);
+               jt.setCoordinateRangeDeg (0, range);
+               jt.setCoordinateRangeDeg (1, range);
+               jt.setCoordinateRangeDeg (2, range);
+               break;
+            case "knee_l":
+               range.set (-120.0, 10);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "ankle_l":
+               range.set (-90, 90);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "subtalar_l":
+               range.set (0, 0);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "mtp_l":
+               range.set (0, 0);
+               jt.setCoordinateRangeDeg (0, range);
+               break;
+            case "back":
+               range.set (-90, 90);
+               jt.setCoordinateRangeDeg (0, range);
+               jt.setCoordinateRangeDeg (1, range);
+               jt.setCoordinateRangeDeg (2, range);
+               break;
+         }
+      });
       return myJoints;
    }
 
@@ -1443,6 +1407,26 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
+    * Define compliance for the provided joint to prevent overconstraints.
+    * 
+    * @param jt {@link JointBase} object
+    * @param compMagnitude compliance magnitude
+    */
+   private void setJointCompliance (JointBase jt, double compMagnitude) {
+      VectorNd comp = new VectorNd (jt.numConstraints ());
+      VectorNd damp = new VectorNd (jt.numConstraints ());
+      for (int i = 0; i < jt.numConstraints (); i++) {
+         comp.set (i, compMagnitude);
+         Frame bodyA = (Frame)jt.getBodyA ();
+         Frame bodyB = (Frame)jt.getBodyB ();
+         double mass = bodyA.getEffectiveMass () + bodyB.getEffectiveMass ();
+         damp.set (i, 2 * 1 * Math.sqrt (mass / comp.get (i)));
+      }
+      jt.setCompliance (comp);
+      jt.setDamping (damp);
+   }
+
+   /**
     * Sets the following simulation properties: 1. Integrator, 2. Stabilization
     * method, 3. Adaptive time stepping, 4. maximum step size, 5. unit scale of
     * the model 6. gravity
@@ -1450,7 +1434,6 @@ public class OpenSimTest extends RootModel {
    private void setSimulationProperties () {
       MechSystemSolver solver = myMech.getSolver ();
       solver.setIntegrator (Integrator.Trapezoidal);
-      // Use global stiffness, since more accurate and stable
       solver.setStabilization (PosStabilization.GlobalStiffness);
       setAdaptiveStepping (true);
       setMaxStepSize (0.0017);
@@ -1547,7 +1530,10 @@ public class OpenSimTest extends RootModel {
             .append ("Name: ").append (jt.getName ()).append ("\t")
             .append ("Body A: ").append (jt.getBodyA ().getName ())
             .append ("\t").append ("Body B: ")
-            .append (jt.getBodyB ().getName ()).append ("\n");
+            .append (jt.getBodyB ().getName ()).append ("\n")
+            .append ("Compliance: ").append (jt.getCompliance ().toString ())
+            .append ("\n").append ("Damping: ")
+            .append (jt.getDamping ().toString ("%.3f")).append ("\n");
          for (int i = 0; i < jt.numCoordinates (); i++) {
             double min = jt.getCoordinateRangeDeg (i).getLowerBound ();
             double max = jt.getCoordinateRangeDeg (i).getUpperBound ();
@@ -1724,7 +1710,7 @@ public class OpenSimTest extends RootModel {
             "%%------------------------------------------------------------%%\n")
          .append ("\nCONTROLLER INFORMATION\n").append ("Use motion targets : ")
          .append (controller.getMotionTargetTerm ().isEnabled ()).append ("\n")
-         .append ("\n").append ("Use regularization: ")
+         .append ("Use regularization: ")
          .append (controller.getL2RegularizationTerm ().isEnabled ())
          .append ("\n").append ("Use KKT Factorization: ")
          .append (controller.getUseKKTFactorization ()).append ("\n")

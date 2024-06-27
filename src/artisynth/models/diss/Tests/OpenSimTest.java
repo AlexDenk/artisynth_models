@@ -62,6 +62,7 @@ import artisynth.core.renderables.ColorBar;
 import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
 import artisynth.models.diss.ContactMonitor;
+import artisynth.models.diss.CoordinateData;
 import artisynth.models.diss.MOTReader;
 import artisynth.models.diss.ForceData;
 import artisynth.models.diss.MarkerMapping;
@@ -88,12 +89,9 @@ import maspack.util.DoubleInterval;
 import maspack.util.PathFinder;
 
 /**
- * @author Alexander Denk Copyright (c) 2023-2024
- * <p>
- * (UDE) University of Duisburg-Essen 
- * <p>
- * Chair of Mechanics and Robotics
- * <p>
+ * @author Alexander Denk Copyright (c) 2023-2024 <br>
+ * (UDE) University of Duisburg-Essen <br>
+ * Chair of Mechanics and Robotics <br>
  * alexander.denk@uni-due.de
  */
 
@@ -101,6 +99,8 @@ public class OpenSimTest extends RootModel {
    // ----------------------------Instance Fields-------------------------------
    // All rigid bodies in the model
    RenderableComponentList<RigidBody> myBodies = null;
+   // Calculated generalized angles
+   CoordinateData myCoords;
    // Experimental force data
    ForceData myForces;
    // A list of all joints in the model
@@ -445,7 +445,68 @@ public class OpenSimTest extends RootModel {
    }
 
    // --------------------------Private Instance Methods------------------------
+   /**
+    * Creates a {@link NumericInputProbe} for each {@link JointBase}
+    * {@code joint} coordinate specified by {@code prop} and fills it with the
+    * angles in {@code coords}.
+    * 
+    * @param joint
+    * member of {@code myJoints}
+    * @param coords
+    * {@link CoordinateData}
+    * @param prop
+    * joint coordinate
+    * @param start
+    * probe start time
+    * @param stop
+    * probe stop time
+    */
+   private void addCoordsInputProbe (
+      JointBase joint, CoordinateData coords, String prop, double start,
+      double stop) {
+      NumericInputProbe angle =
+         new NumericInputProbe (joint, prop, start, stop);
+      angle.setModel (myMech);
+      angle.setName (prop);
+      for (int i = 0; i < coords.numFrames (); i++) {
+         double time = coords.getFrameTime (i);
+         double[] coord = new double[1];
+         coord[0] = coords.getData (i, prop);
+         angle.addData (time, coord);
 
+      }
+      angle.setActive (true);
+      addInputProbe (angle);
+   }
+
+   /**
+    * Adds the data stored in {@code myCoords} as numeric input probe per joint
+    * if available.
+    * 
+    * @param coords
+    * {@link CoordinateData}
+    */
+   private void addCoordsInputProbes (CoordinateData coords) {
+      if (coords != null) {
+         double start = coords.getFrameTime (0);
+         double stop = coords.getFrameTime (coords.numFrames () - 1);
+         myJoints.forEach (jt -> {
+            for (int j = 0; j < jt.numCoordinates (); j++) {
+               addCoordsInputProbe (
+                  jt, coords, jt.getCoordinateName (j), start, stop);
+            }
+         });
+
+      }
+   }
+
+   /**
+    * Adds all model muscles and three frame exciters for pelvis and both
+    * calcanei as exciters to the controller.
+    * 
+    * @param controller
+    * {@link TrackingController}
+    */
    private void addExcitersToController (TrackingController controller) {
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
@@ -468,18 +529,17 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Defines n ({@code list.size())} {@link NumericInputProbe}s for the
-    * specified bodies in {@code list} and fills it with the force data in
-    * {@code forces}. Hands the generated Probes to the
-    * {@link MotionTargetController}
+    * Creates a {@link NumericControlProbe} for the specified body {@code frame}
+    * and fills it with the force data in {@code forces}, based on the
+    * identifier {@code side} (i.e. left or right).
     * 
-    * @param motcon
-    * MotionTargetController
-    * @param list
-    * List of Components to apply forces to. Needs to implement the property
-    * {@code externalForce}
     * @param forces
-    * {@link ForceTarget} object containing the experimental forces
+    * {@link ForceTarget}
+    * @param frame
+    * Rigid body to apply the input probe to
+    * @param side
+    * left or right
+    * 
     */
    private void addForceInputProbe (
       ForceData forces, Frame frame, String side) {
@@ -510,26 +570,27 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Adds frame exciters for all specified bodies in the model to account for
-    * ground reaction forces. Adds also the input probes for ground reaction
-    * forces
+    * Adds the data stored in {@code myForces} as individual input probes if
+    * available.
     * 
-    * @param controller
+    * @param forces
+    * {@link ForceData}
     */
-   private void addForceInputProbes (
-      TrackingController controller, ForceData forces) {
-      RigidBody calcnR = myBodies.get ("calcn_r");
-      addForceInputProbe (forces, calcnR, "Right");
-      RigidBody calcnL = myBodies.get ("calcn_l");
-      addForceInputProbe (forces, calcnL, "Left");
+   private void addForceInputProbes (ForceData forces) {
+      if (forces != null) {
+         RigidBody calcnR = myBodies.get ("calcn_r");
+         addForceInputProbe (forces, calcnR, "Right");
+         RigidBody calcnL = myBodies.get ("calcn_l");
+         addForceInputProbe (forces, calcnL, "Left");
+      }
    }
 
    /**
-    * Adds the data stored in {@code motion} to the input probes of the
-    * MotionTargetController, if available.
+    * Adds the data stored in {@code myMotion} to the input probes of the
+    * TrackingController, if available.
     * 
     * @param controller
-    * MotionTargetController
+    * TrackingController
     * @param map
     * links the model marker names to the experimental marker names and their
     * weights
@@ -539,45 +600,43 @@ public class OpenSimTest extends RootModel {
    private void addMotionInputProbes (
       TrackingController controller, MarkerMapping map,
       MarkerMotionData motion) {
-      // Get target positions probe to fill with data
+      if (motion == null)
+         return;
       NumericInputProbe expMotion =
          (NumericInputProbe)getInputProbes ().get ("target positions");
-      // Add target positions to the probe frame by frame
-      if (expMotion != null) {
-         int size = controller.getMotionSources ().size ();
-         for (int i = 0; i < motion.numFrames (); i++) {
-            VectorNd mot = new VectorNd (size * 3);
-            for (int j = 0; j < size; j++) {
-               String name = controller.getMotionSources ().get (j).getName ();
-               String label;
-               try {
-                  label = map.getExpLabelFromModel (name);
-                  mot.add (3 * j, motion.getMarkerPosition (i, label).x);
-                  mot.add (3 * j + 1, motion.getMarkerPosition (i, label).y);
-                  mot.add (3 * j + 2, motion.getMarkerPosition (i, label).z);
-               }
-               catch (Exception e) {
-                  e.printStackTrace ();
-               }
+      if (expMotion == null)
+         return;
+      int size = controller.getMotionSources ().size ();
+      for (int i = 0; i < motion.numFrames (); i++) {
+         VectorNd mot = new VectorNd (size * 3);
+         for (int j = 0; j < size; j++) {
+            String name = controller.getMotionSources ().get (j).getName ();
+            String label;
+            try {
+               label = map.getExpLabelFromModel (name);
+               mot.add (3 * j, motion.getMarkerPosition (i, label).x);
+               mot.add (3 * j + 1, motion.getMarkerPosition (i, label).y);
+               mot.add (3 * j + 2, motion.getMarkerPosition (i, label).z);
             }
-            double time = motion.getFrameTime (i);
-            expMotion.addData (time, mot);
+            catch (Exception e) {
+               e.printStackTrace ();
+            }
          }
-         expMotion.setActive (true);
+         double time = motion.getFrameTime (i);
+         expMotion.addData (time, mot);
       }
+      expMotion.setActive (true);
    }
 
    /**
     * Defines MotionTargets of the {@link MotionTargetTerm} of the
-    * {@link MotionTargetController}.
+    * {@link TrackingController}.
     * 
     * @param controller
-    * MotionTargetController
+    * TrackingController
     * @param map
     * links the model marker names to the experimental marker names and their
     * weights
-    * @param scale
-    * Unit scale factor for the current model (m = 1, mm = 1000)
     */
    private void addMotionTargetsToController (
       TrackingController controller, MarkerMapping map) {
@@ -614,17 +673,19 @@ public class OpenSimTest extends RootModel {
                jt, jointPanel, jt.getCoordinateName (i), start, stop, step);
          }
       });
-      ControlPanel musclePanel = new ControlPanel ("Muscle Excitations");
-      controller.getExciters ().forEach (e -> {
-         if (e instanceof FrameExciter) {
-            createProbeAndPanel (e, null, "excitation", start, stop, step);
-         }
-         else {
-            musclePanel.addWidget (e.getName (), e, "excitation");
-         }
-      });
       addControlPanel (jointPanel);
-      addControlPanel (musclePanel);
+      ControlPanel musclePanel = new ControlPanel ("Muscle Excitations");
+      if (controller != null) {
+         controller.getExciters ().forEach (e -> {
+            if (e instanceof FrameExciter) {
+               createProbeAndPanel (e, null, "excitation", start, stop, step);
+            }
+            else {
+               musclePanel.addWidget (e.getName (), e, "excitation");
+            }
+         });
+         addControlPanel (musclePanel);
+      }
    }
 
    /**
@@ -769,27 +830,18 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Defines a {@link MotionTargetController} object, that calculates muscle
-    * activations based on trajectories. The motion target controller is a self
-    * written class, that controls the movement of target markers (based on the
-    * experimental trajectories and forces) for the model markers to follow.
+    * Defines a tracking controller that calculates muscle activations based on
+    * trajectories and sets its properties.
     * 
-    * @param forces
-    * {@link ForceData}
     * @param motion
     * {@link MarkerMotionData}
     * @param map
-    * {@link MarkerMapping} links the model marker names to the experimental
-    * marker names and their weights
+    * {@link MarkerMapping}
     * @param name
     * Name specifier of the current working directory
-    * @param scale
-    * Unit scaling factor for the current model (m = 1, mm = 1000)
-    * @throws IOException
     */
    private TrackingController defineControllerAndProps (
-      MarkerMotionData motion, MarkerMapping map, String name)
-      throws IOException {
+      MarkerMotionData motion, MarkerMapping map, String name) {
       TrackingController motcon =
          new TrackingController (myMech, "Motion controller");
       PointList<TargetPoint> myTargets = motcon.getTargetPoints ();
@@ -828,33 +880,41 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Defines all in- and outgoing probes for the model. Ingoing probes are
-    * experimental marker trajectories and forces, outgoing probes are all joint
-    * angles of the model.
+    * Defines all in- and outgoing probes for the model. Ingoing probes can be
+    * experimental marker trajectories, forces or generalized coordinates,
+    * outgoing probes can be all joint angles (if not already specified as
+    * generalized coordinates), muscle and frame exciter excitations.
     * 
     * @param name
     * Name specifier of the current working directory
     * @param scale
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     * @throws IOException
+    * if specified files or file paths are invalid
     */
    private void defineIOProbes (String name, int scale) throws IOException {
+      // Read all input data
       myMotion = readTRCFile (name, scale);
-      myForces = readMOTFile (name);
+      myForces = readForceFile (name);
+      myCoords = readCoordsFile (name);
       myMap = readMarkerFile (name);
-      TrackingController controller =
-         defineControllerAndProps (myMotion, myMap, name);
-      addExcitersToController (controller);
-      addMotionTargetsToController (controller, myMap);
-      controller.createProbesAndPanel (this);
-      adjustDefaultProbePaths ();
-      addController (controller);
-      addMotionInputProbes (controller, myMap, myMotion);
-      addForceInputProbes (controller, myForces);
+      // Create controller and periphery
+      //rackingController controller =
+      //   defineControllerAndProps (myMotion, myMap, name);
+      //addExcitersToController (controller);
+      //addMotionTargetsToController (controller, myMap);
+      //controller.createProbesAndPanel (this);
+      //adjustDefaultProbePaths ();
+      //addController (controller);
+      // Add input probes for all read data
+      //addMotionInputProbes (controller, myMap, myMotion);
+      //addForceInputProbes (myForces);
+      addCoordsInputProbes (myCoords);
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
       // within the probe itself
-      addNumOutputProbesAndPanel (myMotion, controller);
+      // Add output probes
+      addNumOutputProbesAndPanel (myMotion, null);
    }
 
    /**
@@ -1083,53 +1143,6 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Returns a map of marker names based on an input file. It accepts files in
-    * a specific format: No head line, all lines divided by a tab. 1st column:
-    * Name of the model marker 2nd column: Name of the experimental marker 3rd
-    * Column: Marker weighting for the inverse solver If no experimental marker
-    * exists for a given model marker, leave out the 2nd and 3rd column and
-    * continue with next line.
-    * 
-    * @param name
-    * Name specifier of the model working directory
-    * @return {@link MarkerMapping} map
-    * @throws IOException
-    */
-   private MarkerMapping readMarkerFile (String name) throws IOException {
-      String mapName = name + "/Input/" + name + "_markers.txt";
-      File mapFile = ArtisynthPath.getSrcRelativeFile (this, mapName);
-      BufferedReader reader = new BufferedReader (new FileReader (mapFile));
-
-      ArrayList<String> modelLabels = new ArrayList<String> ();
-      ArrayList<String> expLabels = new ArrayList<String> ();
-      ArrayList<Double> weights = new ArrayList<Double> ();
-
-      String line;
-      while ((line = reader.readLine ()) != null) {
-         line = line.trim ();
-         assert line.length () != 0;
-         String[] markers = line.split ("\t");
-         if (markers.length == 1) {
-            System.out
-               .println (
-                  "Warning: Marker " + markers[0]
-                  + ": No corresponding experimental marker detected.");
-            modelLabels.add (markers[0]);
-            expLabels.add (null);
-            weights.add (null);
-         }
-         else {
-            modelLabels.add (markers[0]);
-            expLabels.add (markers[1]);
-            weights.add (Double.parseDouble (markers[2]));
-         }
-      }
-      reader.close ();
-      MarkerMapping map = new MarkerMapping (modelLabels, expLabels, weights);
-      return map;
-   }
-
-   /**
     * Queries all {@link FrameMarker} objects from the current {@link MechModel}
     * and stores them in a global variable.
     * 
@@ -1269,19 +1282,53 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
-    * Returns a {@link ForceData} object from the available experimental force
-    * data ({@code name}_forces.mot) in the input folder of the current working
+    * Returns joint angles as generalized coordinates from prior IK calculations
+    * or MoCap systems ({@code name_angles.mot}) in the input folder of the
+    * current working directory.
+    * 
+    * @param name
+    * Name specifier of the current working directory
+    * @return {@link CoordinateData}
+    * @throws IOException
+    * if the file or file path are invalid
+    */
+   private CoordinateData readCoordsFile (String name) throws IOException {
+      String motName = name + "/Input/" + name + "_angles.mot";
+      File motFile = ArtisynthPath.getSrcRelativeFile (this, motName);
+      if (!motFile.exists () || motFile.isDirectory ()) {
+         return null;
+      }
+      MOTReader motReader = new MOTReader (motFile);
+      motReader.readData ();
+      // Print reading details to the console
+      System.out
+         .println (
+            "Calculated generalized coordinates: "
+            + motReader.getNumCoordLabels ());
+      System.out
+         .println (
+            "MOT file: read " + motReader.getNumCoordFrames () + " frames");
+      return motReader.getCoordinateData ();
+   }
+
+   /**
+    * Returns ground reaction forces from the available experimental force data
+    * ({@code name_forces.mot}) in the input folder of the current working
     * directory.
     * 
     * @param name
     * Name specifier of the current working directory
-    * @return
+    * @return {@link ForceData}
     * @throws IOException
+    * if the file or file path are invalid
     */
-   private ForceData readMOTFile (String name) throws IOException {
+   private ForceData readForceFile (String name) throws IOException {
       String motName = name + "/Input/" + name + "_forces.mot";
-      String motPath = ArtisynthPath.getSrcRelativePath (this, motName);
-      MOTReader motReader = new MOTReader (new File (motPath));
+      File motFile = ArtisynthPath.getSrcRelativeFile (this, motName);
+      if (!motFile.exists () || motFile.isDirectory ()) {
+         return null;
+      }
+      MOTReader motReader = new MOTReader (motFile);
       motReader.readData ();
       // Print reading details to the console
       System.out
@@ -1291,6 +1338,54 @@ public class OpenSimTest extends RootModel {
          .println (
             "MOT file: read " + motReader.getNumForceFrames () + " frames");
       return motReader.getForceData ();
+   }
+
+   /**
+    * Returns a map of marker names based on an input file. It accepts files in
+    * a specific format: No head line, all lines divided by a tab. 1st column:
+    * Name of the model marker 2nd column: Name of the experimental marker 3rd
+    * Column: Marker weighting for the inverse solver If no experimental marker
+    * exists for a given model marker, leave out the 2nd and 3rd column and
+    * continue with next line.
+    * 
+    * @param name
+    * Name specifier of the model working directory
+    * @return {@link MarkerMapping}
+    * @throws IOException
+    * if the file or file path are invalid
+    */
+   private MarkerMapping readMarkerFile (String name) throws IOException {
+      String mapName = name + "/Input/" + name + "_markers.txt";
+      File mapFile = ArtisynthPath.getSrcRelativeFile (this, mapName);
+      if (!mapFile.exists () || mapFile.isDirectory ()) {
+         return null;
+      }
+      BufferedReader reader = new BufferedReader (new FileReader (mapFile));
+      ArrayList<String> modelLabels = new ArrayList<String> ();
+      ArrayList<String> expLabels = new ArrayList<String> ();
+      ArrayList<Double> weights = new ArrayList<Double> ();
+      String line;
+      while ((line = reader.readLine ()) != null) {
+         line = line.trim ();
+         assert line.length () != 0;
+         String[] markers = line.split ("\t");
+         if (markers.length == 1) {
+            System.out
+               .println (
+                  "Warning: Marker " + markers[0]
+                  + ": No corresponding experimental marker detected.");
+            modelLabels.add (markers[0]);
+            expLabels.add (null);
+            weights.add (null);
+         }
+         else {
+            modelLabels.add (markers[0]);
+            expLabels.add (markers[1]);
+            weights.add (Double.parseDouble (markers[2]));
+         }
+      }
+      reader.close ();
+      return new MarkerMapping (modelLabels, expLabels, weights);
    }
 
    /**
@@ -1306,34 +1401,39 @@ public class OpenSimTest extends RootModel {
       File osimFile = ArtisynthPath.getSrcRelativeFile (this, modelPath);
       String geometryPath = myName + "/Geometry/";
       File geometryFile = ArtisynthPath.getSrcRelativeFile (this, geometryPath);
-      OpenSimParser parser = new OpenSimParser (osimFile);
-      parser.setGeometryPath (geometryFile);
-      parser.createModel (myMech);
-      myMech.scaleDistance (scale);
-      myMech.scaleMass (scale);
-      myMech.setFrameDamping (0.01);
-      myMech.setRotaryDamping (0.2);
-      // myMech.setInertialDamping (0.1);
+      if (osimFile.exists () && geometryFile.exists ()) {
+         OpenSimParser parser = new OpenSimParser (osimFile);
+         parser.setGeometryPath (geometryFile);
+         parser.createModel (myMech);
+         myMech.scaleDistance (scale);
+         myMech.scaleMass (scale);
+         myMech.setFrameDamping (0.01);
+         myMech.setRotaryDamping (0.2);
+         // myMech.setInertialDamping (0.1);
+      }
    }
 
    /**
-    * Returns a {@link MarkerMotionData} object from the available experimental
-    * motion data ({@code name}_positions.trc) in the input folder of the
-    * current working directory.
+    * Returns marker trajectories from the available experimental motion data
+    * ({@code name_positions.trc}) in the input folder of the current working
+    * directory.
     * 
     * @param name
     * Name specifier of the current working directory
     * @param scale
     * Unit scaling factor for the current model (m = 1, mm = 1000)
-    * @return
+    * @return {@link MarkerMotionData}
     * @throws IOException
+    * if the file or file path are invalid
     */
    private MarkerMotionData readTRCFile (String name, int scale)
       throws IOException {
       String trcName = name + "/Input/" + name + "_positions.trc";
-      String trcPath =
-         ArtisynthPath.getSrcRelativePath (this, trcName).toString ();
-      TRCReader trcReader = new TRCReader (new File (trcPath));
+      File trcFile = ArtisynthPath.getSrcRelativeFile (this, trcName);
+      if (!trcFile.exists () || trcFile.isDirectory ()) {
+         return null;
+      }
+      TRCReader trcReader = new TRCReader (trcFile);
       trcReader.readData ();
       System.out
          .println (
@@ -1341,8 +1441,8 @@ public class OpenSimTest extends RootModel {
       System.out
          .println ("TRC file: read " + trcReader.getNumFrames () + " frames");
       MarkerMotionData motion = trcReader.getMotionData ();
-      // Scale the marker trajectories individually, since there is no general
-      // .scale () method for marker positions
+      // Scale the marker trajectories individually, since there is no
+      // general .scale () method for marker positions
       for (int i = 0; i <= motion.numFrames () - 1; i++) {
          motion.getMarkerPositions (i).forEach (p -> {
             p.x = p.x * scale / 1000;
@@ -1364,11 +1464,10 @@ public class OpenSimTest extends RootModel {
     * @param coll
     * {@link CollisionManager}
     * @throws IOException
-    * @throws
     */
    private void setContactProps (CollisionManager coll) throws IOException {
       coll.setName ("Collision manager");
-      // Handlee overconstrained contact
+      // Handle overconstrained contact
       coll.setReduceConstraints (true);
       coll.setBilateralVertexContact (false);
       myJoints.forEach (jt -> {
@@ -1411,8 +1510,10 @@ public class OpenSimTest extends RootModel {
    /**
     * Define compliance for the provided joint to prevent overconstraints.
     * 
-    * @param jt {@link JointBase} object
-    * @param compMagnitude compliance magnitude
+    * @param jt
+    * {@link JointBase} object
+    * @param compMagnitude
+    * compliance magnitude
     */
    private void setJointCompliance (JointBase jt, double compMagnitude) {
       VectorNd comp = new VectorNd (jt.numConstraints ());

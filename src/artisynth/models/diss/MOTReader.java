@@ -42,15 +42,6 @@ public class MOTReader {
    }
 
    // -------------------------Instance Methods--------------------------------
-   private void closeQuietly (InputStream in) {
-      if (in != null) {
-         try {
-            in.close ();
-         }
-         catch (IOException e) {
-         }
-      }
-   }
 
    public void close () {
       closeQuietly (myIstream);
@@ -88,123 +79,186 @@ public class MOTReader {
       return forcesInDegrees;
    }
 
-   public int scanDataHeader (BufferedReader reader) throws IOException {
-      int numLine = 0;
-      int numFrames = 0;
+   public List<Object> scanDataHeader (BufferedReader reader)
+      throws IOException {
+      int numLines = 0;
+      int numColumns = 0;
+      boolean inDegrees = false;
       String line;
-
-      while (numLine <= 6) {
+      // Read general info
+      do {
          if ((line = reader.readLine ()) != null) {
             line = line.trim ();
-            if (line.contains ("nRows")) {
+            if (line.contains ("nColumns")) {
                String[] tokens = line.split ("=");
-               numFrames = Integer.parseInt (tokens[1]);
+               numColumns = Integer.parseInt (tokens[1]);
+               numLines++;
+               continue;
             }
-            else if (line.contains ("nColumns")) {
+            else if (line.contains ("inDegrees")) {
                String[] tokens = line.split ("=");
-               myForces.setColumns (Integer.parseInt (tokens[1]));
-            }
-            else if (line.contains ("Degrees")) {
-               String[] tokens = line.split ("=");
-               if (tokens[1].contains ("yes")) {
-                  forcesInDegrees = true;
+               if (tokens.length >= 2 && tokens[1].equals ("yes")) {
+                  inDegrees = true;
                }
+               numLines++;
+               continue;
             }
-            else if (line.contains ("time")) {
-               String[] tokens = line.split ("\t");
-               ArrayList<String> labels = new ArrayList<String> ();
-               // Combine each column header triple (x,y,z) to a single force
-               // label, skip time entry so start at 1.
-               for (int i = 1; i < tokens.length; i++) {
-                  // check if token belongs to the left foot
-                  if (tokens[i].contains ("1")) {
-                     // check if token is a force vector
-                     if (tokens[i].contains ("v")) {
-                        // check whether label is already contained
-                        if (labels.contains ("Left GRF")) {
-                           continue;
-                        }
-                        labels.add ("Left GRF");
-                     }
-                     // check if token is a point
-                     else if (tokens[i].contains ("p")) {
-                        if (labels.contains ("Left COP")) {
-                           continue;
-                        }
-                        labels.add ("Left COP");
-                     }
-                     // check if token is a torque
-                     else if (tokens[i].contains ("torque")) {
-                        if (labels.contains ("Left GRM")) {
-                           continue;
-                        }
-                        labels.add ("Left GRM");
-                     }
-                  }
-                  // perform similar checks for the right foot
-                  if (tokens[i].contains ("v")) {
-                     if (labels.contains ("Right GRF")) {
-                        continue;
-                     }
-                     labels.add ("Right GRF");
-                  }
-                  else if (tokens[i].contains ("p")) {
-                     if (labels.contains ("Right COP")) {
-                        continue;
-                     }
-                     labels.add ("Right COP");
-                  }
-                  else if (tokens[i].contains ("torque")) {
-                     if (labels.contains ("Right GRM")) {
-                        continue;
-                     }
-                     labels.add ("Right GRM");
-                  }
-               }
-               myForces.setForceLabels (labels);
+            numLines++;
+         }
+      }
+      while (!line.contains ("endheader"));
+
+      // Read labels
+      boolean forcefile = false;
+      if ((line = reader.readLine ()) != null) {
+         line = line.trim ();
+         String[] tokens = line.split ("\t");
+         for (int i = 0; i < tokens.length; i++) {
+            if (tokens[i].contains ("force") || tokens[i].contains ("torque")) {
+               forcefile = true;
+               break;
             }
          }
-         numLine++;
+         if (forcefile) {
+            myForces.setForceLabels (readForceLabels (tokens));
+            myForces.setColumns (numColumns);
+            forcesInDegrees = inDegrees;
+         }
+         else {
+            myCoords.setCoordLabels (readCoordLabels (tokens));
+            myCoords.setColumns (numColumns);
+            coordsInDegrees = inDegrees;
+         }
+         numLines++;
       }
-      return numFrames;
+      // Return several flags for the data scanner
+      ArrayList<Object> flags = new ArrayList<Object> ();
+      flags.add (numLines);
+      flags.add (numColumns);
+      flags.add (forcefile);
+      return flags;
    }
 
-   public void scanMOTData (BufferedReader reader) throws IOException {
-      int numLine = 7;
+   public void scanMOTData (BufferedReader reader, List<Object> flags)
+      throws IOException {
+      int numLines = (int)flags.get (0);
+      int numColumns = (int)flags.get (1);
+      boolean forcefile = (boolean)flags.get (2);
       String line;
-
       while ((line = reader.readLine ()) != null) {
          line = line.trim ();
          if (line.length () != 0) {
             String[] data = line.split ("\t");
-            // Read time first
             double time = Double.parseDouble (data[0]);
-            // Proof if each force label has an entry in the data list
-            if (data.length != myForces.numColumns ()) {
+            if (data.length != numColumns) {
                throw new IOException (
-                  "Line " + numLine + ": detected " + data.length
-                  + " fields; expected " + myForces.numColumns ());
+                  "Line " + numLines + ": detected " + data.length
+                  + " fields; expected " + numColumns);
             }
-            // Read all data entries in that line into a force vector
-            List<Vector3d> forces = new ArrayList<Vector3d> ();
-            for (int i = 1; i < data.length; i++) {
-               Vector3d force = new Vector3d ();
-               force.x = Double.parseDouble (data[i]);
-               force.y = Double.parseDouble (data[++i]);
-               force.z = Double.parseDouble (data[++i]);
-               forces.add (force);
+            // Read all data entries
+            if (forcefile) {
+               List<Vector3d> forces = new ArrayList<Vector3d> ();
+               for (int i = 1; i < data.length; i++) {
+                  Vector3d force = new Vector3d ();
+                  force.x = Double.parseDouble (data[i]);
+                  force.y = Double.parseDouble (data[++i]);
+                  force.z = Double.parseDouble (data[++i]);
+                  forces.add (force);
+               }
+               myForces.addData (time, forces);
             }
-            myForces.addData (time, forces);
+            else {
+               List<Double> coords = new ArrayList<Double> ();
+               for (int i = 1; i < data.length; i++) {
+                  coords.add (Double.parseDouble (data[i]));
+               }
+               myCoords.addData (time, coords);
+            }
          }
-         numLine++;
+         numLines++;
       }
    }
 
    public void readData () throws IOException {
       BufferedReader reader =
          new BufferedReader (new InputStreamReader (myIstream));
-      scanDataHeader (reader);
-      scanMOTData (reader);
+      // How many lines, columns and which kind of file?
+      List<Object> flags = scanDataHeader (reader);
+      scanMOTData (reader, flags);
       reader.close ();
+   }
+   
+   private void closeQuietly (InputStream in) {
+      if (in != null) {
+         try {
+            in.close ();
+         }
+         catch (IOException e) {
+         }
+      }
+   }
+
+   private ArrayList<String> readCoordLabels (String[] tokens) {
+      ArrayList<String> labels = new ArrayList<String> ();
+      // read labels as they are, but ignore time
+      for (int i = 1; i < tokens.length; i++) {
+         labels.add (tokens[i]);
+      }
+      return labels;
+   }
+
+   private ArrayList<String> readForceLabels (String[] tokens) {
+      // Combine each column header triple (x,y,z) to a single
+      // label, skip time entry so start at 1.
+      ArrayList<String> labels = new ArrayList<String> ();
+      for (int i = 1; i < tokens.length; i++) {
+         // check if token belongs to the left foot
+         if (tokens[i].contains ("1")) {
+            // check if token is a force vector
+            if (tokens[i].contains ("v")) {
+               // check whether label is already contained
+               if (labels.contains ("Left GRF")) {
+                  continue;
+               }
+               labels.add ("Left GRF");
+            }
+            // check if token is a point
+            else if (tokens[i].contains ("p")) {
+               if (labels.contains ("Left COP")) {
+                  continue;
+               }
+               labels.add ("Left COP");
+            }
+            // check if token is a torque
+            else if (tokens[i].contains ("torque")) {
+               if (labels.contains ("Left GRM")) {
+                  continue;
+               }
+               labels.add ("Left GRM");
+            }
+         }
+         else {
+            // perform similar checks for the right foot
+            if (tokens[i].contains ("v")) {
+               if (labels.contains ("Right GRF")) {
+                  continue;
+               }
+               labels.add ("Right GRF");
+            }
+            else if (tokens[i].contains ("p")) {
+               if (labels.contains ("Right COP")) {
+                  continue;
+               }
+               labels.add ("Right COP");
+            }
+            else if (tokens[i].contains ("torque")) {
+               if (labels.contains ("Right GRM")) {
+                  continue;
+               }
+               labels.add ("Right GRM");
+            }
+         }
+      }
+      return labels;
    }
 }

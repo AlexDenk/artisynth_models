@@ -1558,7 +1558,7 @@ public class OpenSimTest extends RootModel {
       solver.setMaxIterations (100);
       solver.setTolerance (1e-5);
       setAdaptiveStepping (true);
-      setMaxStepSize (0.0017);
+      setMaxStepSize (0.017);
       // Define scale (mm = 1000, or m = 1)
       myScale = 1;
       myMech.setGravity (new Vector3d (0, -9.81, 0));

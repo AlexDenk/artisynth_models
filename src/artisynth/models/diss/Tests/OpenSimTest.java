@@ -1553,10 +1553,12 @@ public class OpenSimTest extends RootModel {
     */
    private void setSimulationProperties () {
       MechSystemSolver solver = myMech.getSolver ();
-      solver.setIntegrator (Integrator.Trapezoidal);
+      solver.setIntegrator (Integrator.ConstrainedBackwardEuler);
       solver.setStabilization (PosStabilization.GlobalStiffness);
+      solver.setMaxIterations (100);
+      solver.setTolerance (1e-5);
       setAdaptiveStepping (true);
-      setMaxStepSize (0.017);
+      setMaxStepSize (0.0017);
       // Define scale (mm = 1000, or m = 1)
       myScale = 1;
       myMech.setGravity (new Vector3d (0, -9.81, 0));

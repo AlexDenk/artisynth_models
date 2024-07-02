@@ -9,9 +9,9 @@
 %%------------------------------------------------------------%%
 
 SOLVER
-Integrator: Trapezoidal
+Integrator: ConstrainedBackwardEuler
 Stabilization: GlobalStiffness
-Max Iterations: 20
+Max Iterations: 100
 Matrix Solver: Pardiso
 Hybrid Solving enabled: true
 

@@ -1495,16 +1495,33 @@ public class OpenSimTest extends RootModel {
     * Sets the initial pose of the OpenSim model.
     */
    private void setInitialPose () {
+      // pelvis
+      myJoints.get ("ground_pelvis").setCoordinateDeg (0, 5.31);
+      myJoints.get ("ground_pelvis").setCoordinateDeg (1, -5.38);
+      myJoints.get ("ground_pelvis").setCoordinateDeg (2, -4.59);
       myJoints.get ("ground_pelvis").setCoordinate (3, 0.61);
-      myJoints.get ("ground_pelvis").setCoordinate (4, 0.97);
-      myJoints.get ("ground_pelvis").setCoordinate (5, 0.036);
-      myJoints.get ("hip_r").setCoordinateDeg (0, -17.0);
-      myJoints.get ("knee_r").setCoordinateDeg (0, -10);
-      myJoints.get ("ankle_r").setCoordinateDeg (0, 10);
-      myJoints.get ("hip_l").setCoordinateDeg (0, 25);
-      myJoints.get ("knee_l").setCoordinateDeg (0, -4);
-      myJoints.get ("ankle_l").setCoordinateDeg (0, -9);
-      myJoints.get ("back").setCoordinateDeg (0, -17.2);
+      myJoints.get ("ground_pelvis").setCoordinate (4, 1.01);
+      myJoints.get ("ground_pelvis").setCoordinate (5, 0.041);
+      // right hip
+      myJoints.get ("hip_r").setCoordinateDeg (0, -21.24);
+      myJoints.get ("hip_r").setCoordinateDeg (1, 5.09);
+      myJoints.get ("hip_r").setCoordinateDeg (2, 7.22);
+      // right knee
+      myJoints.get ("knee_r").setCoordinateDeg (0, -9.83);
+      // right ankle
+      myJoints.get ("ankle_r").setCoordinateDeg (0, 13.91);
+      //left hip
+      myJoints.get ("hip_l").setCoordinateDeg (0, 18.42);
+      myJoints.get ("hip_l").setCoordinateDeg (1, -7.26);
+      myJoints.get ("hip_l").setCoordinateDeg (2, -5.024);
+      // left knee
+      myJoints.get ("knee_l").setCoordinateDeg (0, -4.70);
+      // left ankle
+      myJoints.get ("ankle_l").setCoordinateDeg (0, -0.812);
+      // back
+      myJoints.get ("back").setCoordinateDeg (0, -17.85);
+      myJoints.get ("back").setCoordinateDeg (1, 2.98);
+      myJoints.get ("back").setCoordinateDeg (2, 3.93);
    }
 
    /**
@@ -1539,7 +1556,7 @@ public class OpenSimTest extends RootModel {
       solver.setIntegrator (Integrator.Trapezoidal);
       solver.setStabilization (PosStabilization.GlobalStiffness);
       setAdaptiveStepping (true);
-      setMaxStepSize (0.0017);
+      setMaxStepSize (0.017);
       // Define scale (mm = 1000, or m = 1)
       myScale = 1;
       myMech.setGravity (new Vector3d (0, -9.81, 0));

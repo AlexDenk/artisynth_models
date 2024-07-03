@@ -210,8 +210,9 @@ public class OpenSimTest extends RootModel {
    public void build (String[] args) throws IOException {
       super.build (args);
       // Get model name specifier from user
-      JFileChooser fc = new JFileChooser ();
-      myName = getNameFromFileDiaglog (fc);
+      //JFileChooser fc = new JFileChooser ();
+      //myName = getNameFromFileDiaglog (fc);
+      myName = "OpenSimTest";
       myMech.setName (myName);
       addModel (myMech);
       setSimulationProperties ();
@@ -1409,8 +1410,8 @@ public class OpenSimTest extends RootModel {
          myMech.scaleMass (scale);
          myMech.setFrameDamping (0.01);
          myMech.setRotaryDamping (0.2);
-         //myMech.setInertialDamping (0.5);
-         //myMech.setPointDamping (0.5);
+         myMech.setInertialDamping (0.5);
+         myMech.setPointDamping (0.5);
       }
    }
 

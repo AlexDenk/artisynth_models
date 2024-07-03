@@ -18,7 +18,7 @@ Hybrid Solving enabled: true
 PHYSICS
 Frame Damping: 0.01
 Rotary Damping: 0.2
-Inertial Damping: 0.0
+Inertial Damping: 0.5
 Gravity: 0.0 -9.80665 0.0
 
 %%MODELBASE%%

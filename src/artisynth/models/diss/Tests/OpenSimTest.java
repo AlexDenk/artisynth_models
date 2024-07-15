@@ -497,31 +497,34 @@ public class OpenSimTest extends RootModel {
                   jt, coords, jt.getCoordinateName (j), start, stop);
             }
          });
-
       }
    }
 
    /**
-    * Adds all model muscles and three frame exciters for pelvis and both
+    * Adds all model muscles and three frame exciters each for pelvis and both
     * calcanei as exciters to the controller.
     * 
     * @param controller
     * {@link TrackingController}
     */
    private void addExcitersToController (TrackingController controller) {
+      // Muscles
       myMuscles.forEach (msc -> {
          controller.addExciter (msc);
       });
+      // Right calcaneus
       RigidBody calcnR = myBodies.get ("calcn_r");
       double maxForce = myForces.getMaxForce ("Right GRF");
       double maxMoment = myForces.getMaxMoment ("Right GRM");
       createAndAddFrameExciters (
          controller, myMech, calcnR, maxForce, maxMoment);
+      // Left calcaneus
       RigidBody calcnL = myBodies.get ("calcn_l");
       maxForce = myForces.getMaxForce ("Left GRF");
       maxMoment = myForces.getMaxMoment ("Left GRM");
       createAndAddFrameExciters (
          controller, myMech, calcnL, maxForce, maxMoment);
+      // Pelvis
       RigidBody pelvis = myBodies.get ("pelvis");
       maxForce = 1000;
       maxMoment = 20;
@@ -613,15 +616,11 @@ public class OpenSimTest extends RootModel {
          for (int j = 0; j < size; j++) {
             String name = controller.getMotionSources ().get (j).getName ();
             String label;
-            try {
-               label = map.getExpLabelFromModel (name);
-               mot.add (3 * j, motion.getMarkerPosition (i, label).x);
-               mot.add (3 * j + 1, motion.getMarkerPosition (i, label).y);
-               mot.add (3 * j + 2, motion.getMarkerPosition (i, label).z);
-            }
-            catch (Exception e) {
-               e.printStackTrace ();
-            }
+            label = map.getExpLabelFromModel (name);
+            mot.add (3 * j, motion.getMarkerPosition (i, label).x);
+            mot.add (3 * j + 1, motion.getMarkerPosition (i, label).y);
+            mot.add (3 * j + 2, motion.getMarkerPosition (i, label).z);
+
          }
          double time = motion.getFrameTime (i);
          expMotion.addData (time, mot);
@@ -662,9 +661,8 @@ public class OpenSimTest extends RootModel {
     */
    private void addNumOutputProbesAndPanel (
       MarkerMotionData motion, TrackingController controller) {
-      // Define a control panel and add a widget for each output property
+      // Joint Coordinates
       ControlPanel jointPanel = new ControlPanel ("Joint Coordinates");
-      // Define Output Probes
       double start = motion.getFrameTime (0);
       double stop = motion.getFrameTime (motion.numFrames () - 1);
       double step = getMaxStepSize ();
@@ -675,6 +673,7 @@ public class OpenSimTest extends RootModel {
          }
       });
       addControlPanel (jointPanel);
+      // Excitations
       ControlPanel musclePanel = new ControlPanel ("Muscle Excitations");
       if (controller != null) {
          controller.getExciters ().forEach (e -> {
@@ -845,26 +844,6 @@ public class OpenSimTest extends RootModel {
       MarkerMotionData motion, MarkerMapping map, String name) {
       TrackingController motcon =
          new TrackingController (myMech, "Motion controller");
-      PointList<TargetPoint> myTargets = motcon.getTargetPoints ();
-      ArrayList<MotionTargetComponent> mySources = motcon.getMotionSources ();
-      if (myMap != null) {
-         int end = myTargets.size ();
-         for (int i = 0; i < end; i++) {
-            String label;
-            try {
-               label =
-                  myMap.getExpLabelFromModel (mySources.get (i).getName ());
-               Point3d position;
-               position = (Point3d)myMotion.getMarkerPosition (0, label);
-               myTargets.get (i).setPosition (position);
-            }
-            catch (Exception e) {
-               e.printStackTrace ();
-            }
-
-         }
-      }
-
       // MotionTargetController motcon =
       // new MotionTargetController (myMech, "Motion controller", name);
       // motcon.addMotionData (motion, map);
@@ -897,26 +876,27 @@ public class OpenSimTest extends RootModel {
       // Read all input data
       myMotion = readTRCFile (name, scale);
       myForces = readForceFile (name);
-      myCoords = readCoordsFile (name);
+      // myCoords = readCoordsFile (name);
       myMap = readMarkerFile (name);
       // Create controller and periphery
-      // rackingController controller =
-      // defineControllerAndProps (myMotion, myMap, name);
-      // addExcitersToController (controller);
-      // addMotionTargetsToController (controller, myMap);
-      // controller.createProbesAndPanel (this);
-      // adjustDefaultProbePaths ();
-      // addController (controller);
+      TrackingController controller =
+         defineControllerAndProps (myMotion, myMap, name);
+      addExcitersToController (controller);
+      addMotionTargetsToController (controller, myMap);
+      setMotionTargetsPosition(controller);
+      controller.createProbesAndPanel (this);
+      adjustDefaultProbePaths ();
+      addController (controller);
       // Add input probes for all read data
-      // addMotionInputProbes (controller, myMap, myMotion);
-      // addForceInputProbes (myForces);
+      addMotionInputProbes (controller, myMap, myMotion);
+      addForceInputProbes (myForces);
       addCoordsInputProbes (myCoords);
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
       // within the probe itself
       // Add output probes
-      addNumOutputProbesAndPanel (myMotion, null);
-      addBreakPoint (myCoords.getFrameTime (myCoords.numFrames () - 1));
+      addNumOutputProbesAndPanel (myMotion, controller);
+      addBreakPoint (myMotion.getFrameTime (myMotion.numFrames () - 1));
    }
 
    /**
@@ -1409,10 +1389,10 @@ public class OpenSimTest extends RootModel {
          parser.createModel (myMech);
          myMech.scaleDistance (scale);
          myMech.scaleMass (scale);
-         myMech.setFrameDamping (0.01);
-         myMech.setRotaryDamping (0.2);
-         myMech.setInertialDamping (0.5);
-         myMech.setPointDamping (0.5);
+         myMech.setFrameDamping (0.07);
+         myMech.setRotaryDamping (5.0);
+         myMech.setInertialDamping (2.8);
+         myMech.setPointDamping (10.0);
       }
    }
 
@@ -1548,6 +1528,30 @@ public class OpenSimTest extends RootModel {
       jt.setCompliance (comp);
       jt.setDamping (damp);
    }
+   
+   /**
+    * Sets the initial positions of the motion targets. TODO: To be removed, as
+    * soon as the MotionTargetController is used, as it sets the target
+    * positions internally.
+    * 
+    * @param controller
+    */
+   private void setMotionTargetsPosition (TrackingController controller) {
+      PointList<TargetPoint> myTargets = controller.getTargetPoints ();
+      ArrayList<MotionTargetComponent> mySources =
+         controller.getMotionSources ();
+      if (myMap != null) {
+         int end = myTargets.size ();
+         for (int i = 0; i < end; i++) {
+            String label;
+            label = myMap.getExpLabelFromModel (mySources.get (i).getName ());
+            Point3d position;
+            position = (Point3d)myMotion.getMarkerPosition (0, label);
+            myTargets.get (i).setPosition (position);
+
+         }
+      }
+   }
 
    /**
     * Sets the following simulation properties: 1. Integrator, 2. Stabilization
@@ -1561,7 +1565,7 @@ public class OpenSimTest extends RootModel {
       solver.setMaxIterations (100);
       solver.setTolerance (1e-5);
       setAdaptiveStepping (true);
-      setMaxStepSize (0.017);
+      setMaxStepSize (0.0017);
       // Define scale (mm = 1000, or m = 1)
       myScale = 1;
       myMech.setGravity (new Vector3d (0, -9.81, 0));

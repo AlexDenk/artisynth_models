@@ -39,6 +39,7 @@ CVS
 *~
 *.bak
 /tmp
+*.txt
 
 ######################
 # Log files
@@ -74,4 +75,3 @@ src/artisynth/models/diss/Tests/OpenSimTest/Output/mtp_r mtp_angle_r.txt
 src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_input_file.txt
 src/artisynth/models/diss/Tests/OpenSimTest/Output/subtalar_l subtalar_angle_l.txt
 src/artisynth/models/diss/Tests/OpenSimTest/Output/subtalar_r subtalar_angle_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_message_file.txt

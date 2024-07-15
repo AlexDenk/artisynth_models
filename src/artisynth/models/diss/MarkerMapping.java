@@ -45,13 +45,13 @@ public class MarkerMapping {
     * @throws Exception
     * if the given label is unknown
     */
-   public String getExpLabelFromModel (String modelLabel) throws Exception {
+   public String getExpLabelFromModel (String modelLabel) {
       if (myModelLabels.contains (modelLabel)) {
          int index = myModelLabels.indexOf (modelLabel);
          return myExpLabels.get (index);
       }
       else {
-         throw new Exception ("Model label unknown.");
+         return null;
       }
    }
 

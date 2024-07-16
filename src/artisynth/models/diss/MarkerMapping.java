@@ -101,11 +101,9 @@ public class MarkerMapping {
     * 
     * @param label
     * String label
-    * @return Double weight
-    * @throws Exception
-    * if the given label is unknown
+    * @return Double weight or null if the given label is unknown
     */
-   public Double getMarkerWeight (String label) throws Exception {
+   public Double getMarkerWeight (String label) {
       int index;
       if (myModelLabels.contains (label)) {
          index = myModelLabels.indexOf (label);
@@ -114,7 +112,7 @@ public class MarkerMapping {
          index = myExpLabels.indexOf (label);
       }
       else {
-         throw new Exception ("Label unknown.");
+         return 1.0;
       }
       return myWeights.get (index);
    }

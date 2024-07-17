@@ -260,7 +260,7 @@ public class MotionTargetController extends TrackingController {
       this.msgPath =
          ArtisynthPath
             .getSrcRelativePath (OpenSimTest.class, msgName).toString ();
-      FileWriter fw = new FileWriter (msgPath, true);
+      FileWriter fw = new FileWriter (msgPath, false);
       this.writer = new PrintWriter (fw);
       this.isWriterActive = false;
    }
@@ -271,18 +271,20 @@ public class MotionTargetController extends TrackingController {
     * @throws Exception
     */
    private void updateTargetPoints () throws Exception {
+      if (myMap == null) {
+         return;
+      }
       myTargets = this.getTargetPoints ();
       mySources = this.getMotionSources ();
-      if (myMap != null) {
-         int end = myTargets.size ();
-         for (int i = 0; i < end; i++) {
-            String name =
-               myMap.getExpLabelFromModel (mySources.get (i).getName ());
-            Point3d position;
-            position = (Point3d)myMotion.getMarkerPosition (0, name);
-            myTargets.get (i).setPosition (position);
-         }
+      int end = myTargets.size ();
+      for (int i = 0; i < end; i++) {
+         String name =
+            myMap.getExpLabelFromModel (mySources.get (i).getName ());
+         Point3d position;
+         position = (Point3d)myMotion.getMarkerPosition (0, name);
+         myTargets.get (i).setPosition (position);
       }
+
    }
 
    /**

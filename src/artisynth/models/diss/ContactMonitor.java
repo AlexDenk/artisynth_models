@@ -175,7 +175,7 @@ public class ContactMonitor extends MonitorBase {
       this.msgPath =
          ArtisynthPath
             .getSrcRelativePath (OpenSimTest.class, msgName).toString ();
-      writer = new PrintWriter (new FileWriter (msgPath, true));
+      writer = new PrintWriter (new FileWriter (msgPath, false));
       this.isActive = false;
    }
 }

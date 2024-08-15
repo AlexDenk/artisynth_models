@@ -11,7 +11,8 @@
 SOLVER
 Integrator: ConstrainedBackwardEuler
 Stabilization: GlobalStiffness
-Max Iterations: 100
+Max Iterations: 20
+Max Tolerance: 0.01
 Matrix Solver: Pardiso
 Hybrid Solving enabled: true
 
@@ -26,7 +27,7 @@ Gravity: 0.0 -9.80665 0.0
 %%------------------------------------------------------------%%
 
 BODIES
-Model: OpenSimTest/gait2392_simbody_scaled.osim
+Model: OpenSimTest/OpenSimTest_scaled.osim
 Number of bodies: 12
 Total model mass: 72.6 kg
 
@@ -33749,7 +33750,7 @@ Point 0	0.759 0.438 -0.075
 Point 1	0.872 0.199 -0.058
 Point 2	0.897 0.172 -0.059
 Point 3	0.972 0.163 -0.075
-Point 4	0.990 0.166 -0.080
+Point 4	0.990 0.166 -0.079
 Point 5	1.033 0.175 -0.091
 Number of segments: 5
 Number of muscle wrappings: 0
@@ -33779,7 +33780,7 @@ Opt fiber length: 0.120
 Tendon slack length: 0.030
 Number of points: 2
 Point 0	0.463 1.043 0.069
-Point 1	0.471 1.200 0.046
+Point 1	0.473 1.201 0.046
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33791,7 +33792,7 @@ Opt fiber length: 0.120
 Tendon slack length: 0.030
 Number of points: 2
 Point 0	0.471 1.036 -0.018
-Point 1	0.473 1.199 -0.002
+Point 1	0.475 1.200 -0.002
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33803,7 +33804,7 @@ Opt fiber length: 0.100
 Tendon slack length: 0.100
 Number of points: 2
 Point 0	0.554 1.085 0.146
-Point 1	0.604 1.223 0.041
+Point 1	0.607 1.221 0.041
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33815,7 +33816,7 @@ Opt fiber length: 0.100
 Tendon slack length: 0.100
 Number of points: 2
 Point 0	0.574 1.065 -0.084
-Point 1	0.605 1.222 0.011
+Point 1	0.608 1.220 0.011
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33827,7 +33828,7 @@ Opt fiber length: 0.120
 Tendon slack length: 0.140
 Number of points: 2
 Point 0	0.585 0.945 0.054
-Point 1	0.586 1.177 0.136
+Point 1	0.587 1.175 0.136
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33839,7 +33840,7 @@ Opt fiber length: 0.120
 Tendon slack length: 0.140
 Number of points: 2
 Point 0	0.587 0.943 0.035
-Point 1	0.593 1.172 -0.084
+Point 1	0.595 1.171 -0.083
 Number of segments: 1
 Number of muscle wrappings: 0
 
@@ -33851,16 +33852,14 @@ Number of muscle wrappings: 0
 
 CONTROLLER INFORMATION
 Use motion targets : true
-Use regularization: true
 Use KKT Factorization: false
-Incremental computation: false
-Normalize H: false
+Incremental computation: true
 Use timestep scaling: false
 Integrator: ConstrainedBackwardEuler
 
 TRC File: 151, start time: 0.000, stop time: 2.500, frame rate: 60.00
 MOT File: 1501, start time: 0.000, stop time: 2.500, frame rate: 600.00
-Model markers: 39	Experimental markers: 41
+Model markers: 39	Assigned experimental markers: 31
 Model marker    Exp. marker     Attachment      Weight
 Sternum         Sternum         torso           1.0
 R_Acromium      R.Acromium      torso           0.5
@@ -33901,20 +33900,6 @@ L_Midfoot_Lat   L.Midfoot.Lat   calcn_l         1.0
 L_Toe_Lat       L.Toe.Lat       toes_l          1.0
 L_Toe_Med       L.Toe.Med       toes_l          1.0
 L_Toe_Tip       L.Toe.Tip       toes_l          10.0
-
-Not assigned experimental markers:
-R.Bicep
-L.Bicep
-R.Elbow
-L.Elbow
-R.Wrist.Med
-R.Wrist.Lat
-L.Wrist.Med
-L.Wrist.Lat
-R.Temple
-L.Temple
-
-Generated 43 marker pairs in total.
 
 %%CONTACT%%
 %%------------------------------------------------------------%%

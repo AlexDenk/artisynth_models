@@ -42,7 +42,6 @@ public class MOTReader {
    }
 
    // -------------------------Instance Methods--------------------------------
-
    public void close () {
       closeQuietly (myIstream);
    }
@@ -187,7 +186,7 @@ public class MOTReader {
       scanMOTData (reader, flags);
       reader.close ();
    }
-   
+
    private void closeQuietly (InputStream in) {
       if (in != null) {
          try {
@@ -213,7 +212,7 @@ public class MOTReader {
       ArrayList<String> labels = new ArrayList<String> ();
       for (int i = 1; i < tokens.length; i++) {
          // check if token belongs to the left foot
-         if (tokens[i].contains ("1")) {
+         if (tokens[i].contains ("2")) {
             // check if token is a force vector
             if (tokens[i].contains ("v")) {
                // check whether label is already contained
@@ -230,7 +229,8 @@ public class MOTReader {
                labels.add ("Left COP");
             }
             // check if token is a torque
-            else if (tokens[i].contains ("torque")) {
+            else if (tokens[i].contains ("torque")
+            || tokens[i].contains ("moment")) {
                if (labels.contains ("Left GRM")) {
                   continue;
                }
@@ -251,7 +251,8 @@ public class MOTReader {
                }
                labels.add ("Right COP");
             }
-            else if (tokens[i].contains ("torque")) {
+            else if (tokens[i].contains ("torque")
+            || tokens[i].contains ("moment")) {
                if (labels.contains ("Right GRM")) {
                   continue;
                }

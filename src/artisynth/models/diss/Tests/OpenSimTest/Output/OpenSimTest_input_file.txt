@@ -33852,8 +33852,8 @@ Number of muscle wrappings: 0
 
 CONTROLLER INFORMATION
 Use motion targets : true
-Use KKT Factorization: false
-Incremental computation: true
+Use KKT Factorization: true
+Incremental computation: false
 Use timestep scaling: false
 Integrator: ConstrainedBackwardEuler
 

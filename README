@@ -1,2 +1,2 @@
-# OpenSim-based full body model built in Artisynth
+#OpenSim-based full body model built in Artisynth
 This repository holds a fork of the original artisynth_models repository by John Lloyd (https://github.com/artisynth/artisynth_models) containing a full body model based on the gait2392.osim model in OpenSim. The model was build using the freely available 3D modeling platform ArtiSynth. 

@@ -8,10 +8,3 @@ authors:
 title: "OpenSim-based full-body multibody model built in Artisynth"
 date-released: 2024
 url: "https://github.com/AlexDenk/artisynth_models"
-
-@software{Denk_Kowalczyk_2024,
-  author = {Denk, A. and Kowalczyk, W.},
-  title = {{OpenSim-based full-body multibody model built in Artisynth}},
-  url = {https://github.com/AlexDenk/artisynth_models},
-  year = {2024}
-}

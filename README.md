@@ -11,6 +11,10 @@ The image shows the generated model in Artisynth under parametric control. Inver
 ![Inverse Simulation overview](Gait2392_Demo.png)
 
 ## What this repository includes
-Since being a fork, this repository contains the original artisynth_models repository alongside the [gait2392 model](src/artisynth/models/diss) including the necessary packages to read .trc and .mot files.
+Since being a fork, this repository contains the original artisynth_models repository, alongside:
+* The [gait2392 model](src/artisynth/models/diss) and all necessary geometries including the upper extremities
+* The packages to read and process .mot files including an updated TRC-Reader
+* Exemplary motion-capturing data from tutorial 1 of the [gait2392](https://simtk.org/frs/?group_id=91) model (Delp, S.L., Anderson, F.C., Arnold, A.S., Loan, P., Habib, A., John, C.T., Guendelman, E., Thelen, D.G. OpenSim: Open-source software to create and analyze dynamic simulations of movement. IEEE Transactions on Biomedical Engineering, 54(11), pp 1940-1950. (2007)).
+
 ## License
-This source code is licensed under the BSD-3-Clause license found in the [LICENSE file](LICENSE) in the root directory of this source tree. 
+This source code is licensed under the license found in the [LICENSE file](LICENSE) in the root directory of this source tree.

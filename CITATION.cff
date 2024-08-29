@@ -6,5 +6,5 @@ authors:
   - family-names: Kowalczyk
     given-names: W.
 title: "OpenSim-based full-body multibody model built in Artisynth"
-date-released: 2024
+date-released: 2024-08-29
 url: "https://github.com/AlexDenk/artisynth_models"

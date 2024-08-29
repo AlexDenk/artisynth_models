@@ -225,7 +225,7 @@ public class OpenSimTest extends RootModel {
       addModel (myMech);
       setSimulationProperties ();
       initializeOsim (myName, myScale);
-      // initializeFEM(myName, myScale);
+      initializeFEM(myName, myScale);
       CollisionManager collMan = myMech.getCollisionManager ();
       setContactProps (collMan);
       initializeIOProbes (myName, myScale);
@@ -318,7 +318,6 @@ public class OpenSimTest extends RootModel {
          RenderProps.setPointColor (c, Color.WHITE);
          RenderProps.setPointRadius (c, 0.01*scale);
       });
-
    }
 
    /**
@@ -333,8 +332,10 @@ public class OpenSimTest extends RootModel {
       myMuscles.forEach (msc -> {
          RenderProps.setLineColor (msc, Color.RED.darker ());
          RenderProps.setShading (msc, Shading.SMOOTH);
-         RenderProps.setLineStyle (msc, LineStyle.SPINDLE);
+         //RenderProps.setLineStyle (msc, LineStyle.SPINDLE);
          RenderProps.setLineRadius (msc, 0.005 * scale);
+         RenderProps
+            .setSpindleLines (myMech, 0.02 * scale, Color.RED.darker ());
          msc.setExcitationColor (Color.GREEN);
       });
       myMech.setMaxColoredExcitation (1.0);
@@ -392,7 +393,7 @@ public class OpenSimTest extends RootModel {
    public void setViewerProps () {
       getMainViewer ().setOrthographicView (true);
       getMainViewer ().setRotationMode (RotationMode.CONTINUOUS);
-      setDefaultViewOrientation (AxisAlignedRotation.NZ_Y);
+      setDefaultViewOrientation (AxisAlignedRotation.X_Y);
       mergeAllControlPanels (true);
    }
 
@@ -477,6 +478,7 @@ public class OpenSimTest extends RootModel {
       controller.setUseKKTFactorization (true);
       controller.setComputeIncrementally (false);
       controller.setExcitationDamping ();
+      controller.setL2Regularization (10);
       // Adjust MotionTargetTerm properties
       MotionTargetTerm motionTerm = controller.getMotionTargetTerm ();
       motionTerm.setChaseTime (getMaxStepSize ());
@@ -518,33 +520,33 @@ public class OpenSimTest extends RootModel {
    private void addExcitersToController (
       TrackingController controller, ForceData forces) {
       // Muscles
-      controller.addExciters (myMuscles);
+      // controller.addExciters (myMuscles);
       if (forces == null)
          return;
-      double maxForce = 1000;
-      double maxMoment = 250;
       myBodies.forEach (body -> {
+         double maxForce = 100 * body.getMass ();
+         double maxMoment = 5 * body.getMass ();
          createAndAddFrameExciters (
             controller, myMech, body, maxForce, maxMoment);
       });
       // Frame exciters calcaneus right
-      //RigidBody calcnR = myBodies.get ("calcn_r");
-      //double maxForce = forces.getMaxForce ("Right GRF");
-      //double maxMoment = forces.getMaxMoment ("Right GRM");
-      //createAndAddFrameExciters (
-      //   controller, myMech, calcnR, maxForce, maxMoment);
+      // RigidBody calcnR = myBodies.get ("calcn_r");
+      // double maxForce = forces.getMaxForce ("Right GRF");
+      // double maxMoment = forces.getMaxMoment ("Right GRM");
+      // createAndAddFrameExciters (
+      // controller, myMech, calcnR, maxForce, maxMoment);
       // Frame exciters calcaneus left
-      //RigidBody calcnL = myBodies.get ("calcn_l");
-      //maxForce = forces.getMaxForce ("Left GRF");
-      //maxMoment = forces.getMaxMoment ("Left GRM");
-      //createAndAddFrameExciters (
-      //   controller, myMech, calcnL, maxForce, maxMoment);
+      // RigidBody calcnL = myBodies.get ("calcn_l");
+      // maxForce = forces.getMaxForce ("Left GRF");
+      // maxMoment = forces.getMaxMoment ("Left GRM");
+      // createAndAddFrameExciters (
+      // controller, myMech, calcnL, maxForce, maxMoment);
       // Frame exciters pelvis
-      //RigidBody pelvis = myBodies.get ("pelvis");
-      //maxForce = 1000;
-      //maxMoment = 20;
-      //createAndAddFrameExciters (
-      //   controller, myMech, pelvis, maxForce, maxMoment);
+      // RigidBody pelvis = myBodies.get ("pelvis");
+      // maxForce = 1000;
+      // maxMoment = 20;
+      // createAndAddFrameExciters (
+      // controller, myMech, pelvis, maxForce, maxMoment);
    }
 
    /**
@@ -579,10 +581,10 @@ public class OpenSimTest extends RootModel {
          return;
       }
       myBodies.forEach (b -> {
-         controller.addFrameTarget (b);
+         TargetFrame target = controller.addFrameTarget (b);
          try {
-            createFrameTargetInputProbe (b, motion, "orientation");
-            createFrameTargetInputProbe (b, motion, "position");
+            createFrameTargetInputProbe (target, motion, "orientation");
+            createFrameTargetInputProbe (target, motion, "position");
          }
          catch (IOException e) {
             e.printStackTrace ();
@@ -648,11 +650,9 @@ public class OpenSimTest extends RootModel {
       if (controller != null) {
          controller.getExciters ().forEach (e -> {
             if (e instanceof FrameExciter) {
-               createProbeAndPanel (e, null, "excitation", start, stop, step);
+               createProbeAndPanel (e, null, "excitation", start, stop, step);        
             }
-            else {
-               musclePanel.addWidget (e.getName (), e, "excitation");
-            }
+            musclePanel.addWidget (e.getName (), e, "excitation");
          });
          addControlPanel (musclePanel);
       }
@@ -690,7 +690,7 @@ public class OpenSimTest extends RootModel {
             TargetPoint target = controller.addPointTarget (mkr, weight);
             // Add point target probes
             NumericInputProbe targetProbe =
-               new NumericInputProbe (mkr, "position", start, stop);
+               new NumericInputProbe (target, "position", start, stop);
             targetProbe.setName (mkr.getName () + "_position");
             for (int i = 0; i < motion.numFrames (); i++) {
                VectorNd data = new VectorNd ();
@@ -731,17 +731,17 @@ public class OpenSimTest extends RootModel {
    private FrameExciter[] createAndAddFrameExciters (
       TrackingController ctrl, MechModel mech, Frame frame, double maxForce,
       double maxMoment) {
-      FrameExciter[] exs = new FrameExciter[6];
+      FrameExciter[] exs = new FrameExciter[3];
       exs[0] = new FrameExciter (null, frame, WrenchDof.FX, maxForce);
       exs[1] = new FrameExciter (null, frame, WrenchDof.FY, maxForce);
       exs[2] = new FrameExciter (null, frame, WrenchDof.FZ, maxForce);
-      exs[3] = new FrameExciter (null, frame, WrenchDof.MX, maxMoment);
-      exs[4] = new FrameExciter (null, frame, WrenchDof.MY, maxMoment);
-      exs[5] = new FrameExciter (null, frame, WrenchDof.MZ, maxMoment);
+      //exs[3] = new FrameExciter (null, frame, WrenchDof.MX, maxMoment);
+      //exs[4] = new FrameExciter (null, frame, WrenchDof.MY, maxMoment);
+      //exs[5] = new FrameExciter (null, frame, WrenchDof.MZ, maxMoment);
       // if the frame has a name, use this to create names for the exciters
       if (frame.getName () != null) {
          WrenchDof[] wcs = WrenchDof.values ();
-         for (int i = 0; i < 6; i++) {
+         for (int i = 0; i < exs.length; i++) {
             exs[i]
                .setName (
                   frame.getName () + "_" + wcs[i].toString ().toLowerCase ());
@@ -749,9 +749,9 @@ public class OpenSimTest extends RootModel {
       }
       Double[] weights = new Double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
       if (mech != null) {
-         for (int i = 0; i < 6; i++) {
+         for (int i = 0; i < exs.length; i++) {
             mech.addForceEffector (exs[i]);
-            ctrl.addExciter (weights[i], exs[i]);
+            ctrl.addExciter (1.0, exs[i]);
          }
       }
       return exs;
@@ -1352,32 +1352,38 @@ public class OpenSimTest extends RootModel {
     * 
     * @throws IOException
     */
-   private void initializeFEM () throws IOException {
+   private void initializeFEM (String name, int scale) throws IOException {
       // Femur
+      String femurFileName = name + "/Meshes/C01L_Femur.obj";
       File femurInput =
-         ArtisynthPath.getSrcRelativeFile (this, "Meshes/C01L_Femur.obj");
+         ArtisynthPath.getSrcRelativeFile (this, femurFileName);
       PolygonalMesh femurMesh = new PolygonalMesh ();
       FemModel3d femur = new FemModel3d ("femur");
       femurMesh.read (femurInput);
       FemFactory.createFromMesh (femur, femurMesh, 1.2);
-      femur.setDensity (2E-6);
-      femur.setMaterial (new LinearMaterial (5000, 0.35));
+      femur.scaleDistance (scale / 1000);
+      femur.scaleMass (scale / 1000);
+      femur.setDensity (2000);
+      femur.setMaterial (new LinearMaterial (5e9, 0.35));
       femur.setParticleDamping (0.1);
       femur.setStiffnessDamping (0.1);
       myMech.addModel (femur);
 
       // Tibia and Fibula
-      File tibfibInput =
-         ArtisynthPath.getSrcRelativeFile (this, "Meshes/C01L_TibiaFibula.obj");
-      PolygonalMesh tibfibMesh = new PolygonalMesh ();
-      FemModel3d tibfib = new FemModel3d ("tibfib");
-      tibfibMesh.read (tibfibInput);
-      FemFactory.createFromMesh (tibfib, tibfibMesh, 1.2);
-      tibfib.setDensity (2E-6);
-      tibfib.setMaterial (new LinearMaterial (5000, 0.35));
-      tibfib.setParticleDamping (0.1);
-      tibfib.setStiffnessDamping (0.1);
-      myMech.addModel (tibfib);
+      String shankFileName = name + "/Meshes/C01L_TibiaFibula.obj";
+      File shankInput =
+         ArtisynthPath.getSrcRelativeFile (this, shankFileName);
+      PolygonalMesh shankMesh = new PolygonalMesh ();
+      FemModel3d shank = new FemModel3d ("shank");
+      shankMesh.read (shankInput);
+      FemFactory.createFromMesh (shank, shankMesh, 1.2);
+      shank.scaleDistance(scale / 1000);
+      shank.scaleMass(scale / 1000);
+      shank.setDensity (2000);
+      shank.setMaterial (new LinearMaterial (5e9, 0.35));
+      shank.setParticleDamping (0.1);
+      shank.setStiffnessDamping (0.1);
+      myMech.addModel (shank);
 
       // not used as long as the Ansys reader is not called
       // public String inputNodes = PathFinder.
@@ -1409,21 +1415,21 @@ public class OpenSimTest extends RootModel {
       myCoords = readCoordsFile (name);
       
       // Setup the tracking controller
-      TrackingController controller =
-         addControllerAndProps (myMotion, myMap, name);
-      addExcitersToController (controller, myForces);
+      //TrackingController controller =
+      //   addControllerAndProps (myMotion, myMap, name);
+      //addExcitersToController (controller, myForces);
       //addPointTargetsAndProbes (controller, myMap, myMotion);
-      addFrameTargetsAndProbes (controller, myMotion);
+      //addFrameTargetsAndProbes (controller, myMotion);
       //addForceInputProbes (myForces);
 
       // Parametric control
-      //addCoordsInputProbes (myCoords);
+      addCoordsInputProbes (myCoords);
   
       // Add output probes
       // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
       // where the data is not simply collected but generated by a function
       // within the probe itself
-      addNumOutputProbesAndPanel (myMotion, controller);
+      addNumOutputProbesAndPanel (myMotion, null);
       addBreakPoint (myMotion.getFrameTime (myMotion.numFrames () - 1));
    }
 
@@ -1446,6 +1452,8 @@ public class OpenSimTest extends RootModel {
       myMech.scaleDistance (scale);
       myMech.scaleMass (scale); 
       setInitialPose (myName);
+      // Update muscle wrapping after position update
+      myMech.updateWrapSegments();
    }
 
    /**
@@ -1783,7 +1791,7 @@ public class OpenSimTest extends RootModel {
             .append ("Contact Interface: ").append (cb.getName ()).append ("\n")
             .append ("Bilateral vertex contact: ")
             .append (cb.getBilateralVertexContact ()).append ("\n")
-            .append ("Body a: ")
+            .append ("Body or Group A: ")
             .append (cb.getCollidablePair ().get (0).getName ()).append ("\t")
             .append ("Body or Group B: ")
             .append (cb.getCollidablePair ().get (1).getName ()).append ("\n")

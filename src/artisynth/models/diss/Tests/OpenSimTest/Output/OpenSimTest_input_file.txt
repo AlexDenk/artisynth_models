@@ -33847,60 +33847,6 @@ Number of muscle wrappings: 0
 %%FINITE ELEMENTS%%
 %%------------------------------------------------------------%%
 
-%%PROBES%%
-%%------------------------------------------------------------%%
-
-CONTROLLER INFORMATION
-Use motion targets : true
-Use KKT Factorization: true
-Incremental computation: false
-Use timestep scaling: false
-Integrator: ConstrainedBackwardEuler
-
-TRC File: 151, start time: 0.000, stop time: 2.500, frame rate: 60.00
-MOT File: 1501, start time: 0.000, stop time: 2.500, frame rate: 600.00
-Model markers: 39	Assigned experimental markers: 31
-Model marker    Exp. marker     Attachment      Weight
-Sternum         Sternum         torso           1.0
-R_Acromium      R.Acromium      torso           0.5
-L_Acromium      L.Acromium      torso           0.5
-Top_Head        Top.Head        torso           0.1
-R_ASIS          R.ASIS          pelvis          10.0
-L_ASIS          L.ASIS          pelvis          10.0
-V_Sacral        V.Sacral        pelvis          10.0
-R_Thigh_Upper   R.Thigh.Upper   femur_r         1.0
-R_Thigh_Front   R.Thigh.Front   femur_r         1.0
-R_Thigh_Rear    R.Thigh.Rear    femur_r         1.0
-R_Knee_Lat      No corresponding experimental marker detected.
-R_Knee_Med      No corresponding experimental marker detected.
-R_Shank_Upper   R.Shank.Upper   tibia_r         1.0
-R_Shank_Front   R.Shank.Front   tibia_r         1.0
-R_Shank_Rear    R.Shank.Rear    tibia_r         1.0
-R_Ankle_Lat     No corresponding experimental marker detected.
-R_Ankle_Med     No corresponding experimental marker detected.
-R_Heel          R.Heel          calcn_r         10.0
-R_Midfoot_Sup   R.Midfoot.Sup   calcn_r         1.0
-R_Midfoot_Lat   R.Midfoot.Lat   calcn_r         1.0
-R_Toe_Lat       R.Toe.Lat       toes_r          1.0
-R_Toe_Med       R.Toe.Med       toes_r          1.0
-R_Toe_Tip       R.Toe.Tip       toes_r          10.0
-L_Thigh_Upper   L.Thigh.Upper   femur_l         1.0
-L_Thigh_Front   L.Thigh.Front   femur_l         1.0
-L_Thigh_Rear    L.Thigh.Rear    femur_l         1.0
-L_Knee_Lat      No corresponding experimental marker detected.
-L_Knee_Med      No corresponding experimental marker detected.
-L_Shank_Upper   L.Shank.Upper   tibia_l         1.0
-L_Shank_Front   L.Shank.Front   tibia_l         1.0
-L_Shank_Rear    L.Shank.Rear    tibia_l         1.0
-L_Ankle_Lat     No corresponding experimental marker detected.
-L_Ankle_Med     No corresponding experimental marker detected.
-L_Heel          L.Heel          calcn_l         10.0
-L_Midfoot_Sup   L.Midfoot.Sup   calcn_l         1.0
-L_Midfoot_Lat   L.Midfoot.Lat   calcn_l         1.0
-L_Toe_Lat       L.Toe.Lat       toes_l          1.0
-L_Toe_Med       L.Toe.Med       toes_l          1.0
-L_Toe_Tip       L.Toe.Tip       toes_l          10.0
-
 %%CONTACT%%
 %%------------------------------------------------------------%%
 
@@ -33913,105 +33859,105 @@ Number of contact interfaces: 15
 INDIVIDUAL
 Contact Interface: Rigid-Rigid
 Bilateral vertex contact: false
-Body a: Rigid	Body or Group B: Rigid
+Body or Group A: Rigid	Body or Group B: Rigid
 Penetration Tolerance: 0.001
 Contact compliance: 0.000
 Contact damping: 0.000
 
 Contact Interface: Deformable-Rigid
 Bilateral vertex contact: false
-Body a: Deformable	Body or Group B: Rigid
+Body or Group A: Deformable	Body or Group B: Rigid
 Penetration Tolerance: 0.001
 Contact compliance: 0.000
 Contact damping: 0.000
 
 Contact Interface: Deformable-Deformable
 Bilateral vertex contact: false
-Body a: Deformable	Body or Group B: Deformable
+Body or Group A: Deformable	Body or Group B: Deformable
 Penetration Tolerance: 0.001
 Contact compliance: 0.000
 Contact damping: 0.000
 
 Contact Interface: Deformable-Self
 Bilateral vertex contact: false
-Body a: Deformable	Body or Group B: Self
+Body or Group A: Deformable	Body or Group B: Self
 Penetration Tolerance: 0.001
 Contact compliance: 0.000
 Contact damping: 0.000
 
 Contact Interface: bodyset#femur_r-bodyset#pelvis
 Bilateral vertex contact: false
-Body a: femur_r	Body or Group B: pelvis
+Body or Group A: femur_r	Body or Group B: pelvis
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 28.537
 
 Contact Interface: bodyset#tibia_r-bodyset#femur_r
 Bilateral vertex contact: false
-Body a: tibia_r	Body or Group B: femur_r
+Body or Group A: tibia_r	Body or Group B: femur_r
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 22.419
 
 Contact Interface: bodyset#talus_r-bodyset#tibia_r
 Bilateral vertex contact: false
-Body a: talus_r	Body or Group B: tibia_r
+Body or Group A: talus_r	Body or Group B: tibia_r
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 12.129
 
 Contact Interface: bodyset#calcn_r-bodyset#talus_r
 Bilateral vertex contact: false
-Body a: calcn_r	Body or Group B: talus_r
+Body or Group A: calcn_r	Body or Group B: talus_r
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 7.222
 
 Contact Interface: bodyset#toes_r-bodyset#calcn_r
 Bilateral vertex contact: false
-Body a: toes_r	Body or Group B: calcn_r
+Body or Group A: toes_r	Body or Group B: calcn_r
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 7.527
 
 Contact Interface: bodyset#femur_l-bodyset#pelvis
 Bilateral vertex contact: false
-Body a: femur_l	Body or Group B: pelvis
+Body or Group A: femur_l	Body or Group B: pelvis
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 28.537
 
 Contact Interface: bodyset#tibia_l-bodyset#femur_l
 Bilateral vertex contact: false
-Body a: tibia_l	Body or Group B: femur_l
+Body or Group A: tibia_l	Body or Group B: femur_l
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 22.419
 
 Contact Interface: bodyset#talus_l-bodyset#tibia_l
 Bilateral vertex contact: false
-Body a: talus_l	Body or Group B: tibia_l
+Body or Group A: talus_l	Body or Group B: tibia_l
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 12.129
 
 Contact Interface: bodyset#calcn_l-bodyset#talus_l
 Bilateral vertex contact: false
-Body a: calcn_l	Body or Group B: talus_l
+Body or Group A: calcn_l	Body or Group B: talus_l
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 7.222
 
 Contact Interface: bodyset#toes_l-bodyset#calcn_l
 Bilateral vertex contact: false
-Body a: toes_l	Body or Group B: calcn_l
+Body or Group A: toes_l	Body or Group B: calcn_l
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 7.527
 
 Contact Interface: bodyset#torso-bodyset#pelvis
 Bilateral vertex contact: false
-Body a: torso	Body or Group B: pelvis
+Body or Group A: torso	Body or Group B: pelvis
 Penetration Tolerance: 0.001
 Contact compliance: 0.100
 Contact damping: 42.163

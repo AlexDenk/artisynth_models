@@ -3,3 +3,8 @@ This repository holds a fork of the original [artisynth_models](https://github.c
 
 If you use the model or parts of it in your research, please cite the following reference:
 > Denk A., Kowalczyk W., 2024, OpenSim-based full-body multibody model built in Artisynth, GitHub repository (https://github.com/AlexDenk/artisynth_models).
+![General model overview](Gait2392_Demo.gif)
+
+## What this repository includes
+Since being a fork, this repository contains the original artisynth_models repository alongside the [gait2392 model](src/artisynth/models/diss) including the necessary packages to read .trc and .mot files.
+## License

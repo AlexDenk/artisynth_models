@@ -5,7 +5,8 @@ If you use the model or parts of it in your research, please cite the following 
 > Denk A., Kowalczyk W., 2024, OpenSim-based full-body multibody model built in Artisynth, GitHub repository (https://github.com/AlexDenk/artisynth_models).
 
 ![General model overview](Gait2392_Demo.gif)
-The image shows the generated model in Artisynth under parametric control. Inverse controlling is also available for the model, but it is still under development.
+
+The image shows the generated model in Artisynth under parametric control. Inverse controlling is also available for the model but is still under development.
 
 ![Inverse Simulation overview](Gait2392_Demo.png)
 

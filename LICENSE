@@ -1,9 +1,8 @@
-Copyright (c) 2014, contributing Authors and Organizations as
-indicated in subpackage COPYRIGHT notices.  All rights reserved.
+Copyright (c) 2024, Alexander Denk
+All rights reserved.
 
-Redistribution and use of the ArtiSynth Models package in source and
-binary forms, with or without modification, are permitted provided
-that the following conditions are met:
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
 
 1. Redistributions of source code and data must retain all copyright
 notices, this list of conditions and the following disclaimer.
@@ -12,9 +11,9 @@ notices, this list of conditions and the following disclaimer.
 notices, this list of conditions and the following disclaimer in the
 documentation and/or other materials provided with the distribution.
 
-3. Academic publication of work based on these models provides
-appropriate citations to the original work, as indicated on the
-ArtiSynth Models download site.
+3. Neither the name of the copyright holder nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
 
 THIS SOFTWARE AND DATA IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,

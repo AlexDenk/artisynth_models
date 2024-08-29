@@ -225,7 +225,7 @@ public class OpenSimTest extends RootModel {
       addModel (myMech);
       setSimulationProperties ();
       initializeOsim (myName, myScale);
-      initializeFEM(myName, myScale);
+      //initializeFEM(myName, myScale);
       CollisionManager collMan = myMech.getCollisionManager ();
       setContactProps (collMan);
       initializeIOProbes (myName, myScale);

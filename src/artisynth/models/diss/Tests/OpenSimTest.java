@@ -66,7 +66,10 @@ import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
 import maspack.matrix.AxisAlignedRotation;
+import maspack.matrix.AxisAngle;
 import maspack.matrix.Point3d;
+import maspack.matrix.RigidTransform3d;
+import maspack.matrix.RotationMatrix3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
 import maspack.render.RenderList;
@@ -975,24 +978,44 @@ public class OpenSimTest extends RootModel {
       });
       return myMuscles;
    }
-   
-   private void importAndSetupFemur (String name, double scale) throws IOException {
-      FemModel3d femur = readMeshFile(name, "Femur", scale);
+
+   private void importAndSetupFemur (String name, double scale)
+      throws IOException {
+      FemModel3d femur = readMeshFile (name, "Femur", scale);
       myMeshes.add (femur);
+
+      Vector3d pos = new Vector3d (0.5537, 0.9267, 0.0173);
+      RotationMatrix3d rot =
+         new RotationMatrix3d (
+            0.1150, -0.9387, -0.3249,
+            0.0027, -0.3268, 0.9451, 
+            -0.9934, -0.1096, -0.0350);
+      RigidTransform3d FTW = new RigidTransform3d (pos, rot);
+      femur.transformGeometry (FTW);
       
-      //femur.getFrame ().setPose (myBodies.get ("femur_l").getPose ());
-      femur.setDensity (1000);
+      RigidBody femurRef = myBodies.get ("femur_l");
+      femur.setDensity (femurRef.getMass () / femur.getRestVolume ());
       femur.setMaterial (new LinearMaterial (5e9, 0.35));
       femur.setParticleDamping (0.1);
       femur.setStiffnessDamping (0.1);
    }
-   
-   private void importAndSetupShank (String name, double scale) throws IOException {
-      FemModel3d shank = readMeshFile(name, "TibiaFibula", scale);
+
+   private void importAndSetupShank (String name, double scale)
+      throws IOException {
+      FemModel3d shank = readMeshFile (name, "TibiaFibula", scale);
       myMeshes.add (shank);
       
-      //shank.getFrame ().setPose (myBodies.get("tibia_l").getPose ());
-      shank.setDensity (1000);
+      Vector3d pos = new Vector3d ( 0.5609, 0.9508, -0.1425);
+      RotationMatrix3d rot =
+         new RotationMatrix3d (
+            0.5582, 0.7713, -0.3057,
+            0.1762, 0.2499, 0.9521,
+            0.8108, -0.5853, 0.0036);
+      RigidTransform3d STW = new RigidTransform3d (pos, rot);
+      shank.transformGeometry (STW);
+      
+      RigidBody tibiaRef = myBodies.get ("tibia_l");
+      shank.setDensity (tibiaRef.getMass () / shank.getRestVolume ());
       shank.setMaterial (new LinearMaterial (5e9, 0.35));
       shank.setParticleDamping (0.1);
       shank.setStiffnessDamping (0.1);
@@ -1473,7 +1496,7 @@ public class OpenSimTest extends RootModel {
          nodes.forEach (n -> {
             output
                .append (n.getNumber ()).append ("\t")
-               .append (n.getPosition ().toString ("%.3f")).append ("\n");
+               .append (n.getRestPosition ().toString ("%.3f")).append ("\n");
          });
 
          ArrayList<FemElement3dBase> elements = mesh.getAllElements ();
@@ -1571,7 +1594,7 @@ public class OpenSimTest extends RootModel {
          vertices.forEach (vt -> {
             output
                .append (vt.getIndex ()).append ("\t")
-               .append (vt.getPosition ().toString ("%.3f")).append ("\n");
+               .append (vt.getWorldPoint ().toString ("%.3f")).append ("\n");
          });
          ArrayList<Face> faces = rb.getSurfaceMesh ().getFaces ();
          faces.forEach (f -> {

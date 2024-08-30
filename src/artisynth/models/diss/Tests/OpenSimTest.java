@@ -135,7 +135,6 @@ public class OpenSimTest extends RootModel {
       addModel (myMech);
       setSimulationProperties ();
       initializeOsim (myName, myScale);
-      initializeMeshes(myName, myScale);
       CollisionManager collMan = myMech.getCollisionManager ();
       setContactProps (collMan);
       initializeIOProbes (myName, myScale);
@@ -974,46 +973,6 @@ public class OpenSimTest extends RootModel {
          });
       });
       return myMuscles;
-   }
-   
-   private void importAndSetupFemur (String name, double scale) throws IOException {
-      FemModel3d femur = readMeshFile(name, "Femur", scale);
-      myMeshes.add (femur);
-      
-      //femur.getFrame ().setPose (myBodies.get ("femur_l").getPose ());
-      femur.setDensity (1000);
-      femur.setMaterial (new LinearMaterial (5e9, 0.35));
-      femur.setParticleDamping (0.1);
-      femur.setStiffnessDamping (0.1);
-   }
-   
-   private void importAndSetupShank (String name, double scale) throws IOException {
-      FemModel3d shank = readMeshFile(name, "TibiaFibula", scale);
-      myMeshes.add (shank);
-      
-      //shank.getFrame ().setPose (myBodies.get("tibia_l").getPose ());
-      shank.setDensity (1000);
-      shank.setMaterial (new LinearMaterial (5e9, 0.35));
-      shank.setParticleDamping (0.1);
-      shank.setStiffnessDamping (0.1);
-   }
-
-   /**
-    * Initializes the FEM Meshes
-    * 
-    * @throws IOException
-    */
-   private void initializeMeshes (String name, double scale) throws IOException {
-      importAndSetupFemur(name, scale);
-      importAndSetupShank(name, scale);
-
-      // not used as long as the Ansys reader is not called
-      // public String inputNodes = PathFinder.
-      // getSourceRelativePath (this,"Input Files/testNodes.node" );
-      // public String inputElems =PathFinder.
-      // getSourceRelativePath(this,"Input Files/testElems.elem" );
-      // Generate all FEM related geometries.
-      // AnsysReader.read (femur,inputNodes,inputElems,2E-6,null,0);
    }
 
    /**

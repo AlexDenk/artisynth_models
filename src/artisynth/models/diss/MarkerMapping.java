@@ -41,17 +41,16 @@ public class MarkerMapping {
     * 
     * @param modelLabel
     * model marker label
-    * @return String experimental marker label
-    * @throws Exception
-    * if the given label is unknown
+    * @return String experimental marker label or null if the given label is
+    * unknown
     */
-   public String getExpLabelFromModel (String modelLabel) throws Exception {
+   public String getExpLabelFromModel (String modelLabel) {
       if (myModelLabels.contains (modelLabel)) {
          int index = myModelLabels.indexOf (modelLabel);
          return myExpLabels.get (index);
       }
       else {
-         throw new Exception ("Model label unknown.");
+         return null;
       }
    }
 
@@ -102,11 +101,9 @@ public class MarkerMapping {
     * 
     * @param label
     * String label
-    * @return Double weight
-    * @throws Exception
-    * if the given label is unknown
+    * @return Double weight or null if the given label is unknown
     */
-   public Double getMarkerWeight (String label) throws Exception {
+   public Double getMarkerWeight (String label) {
       int index;
       if (myModelLabels.contains (label)) {
          index = myModelLabels.indexOf (label);
@@ -115,7 +112,7 @@ public class MarkerMapping {
          index = myExpLabels.indexOf (label);
       }
       else {
-         throw new Exception ("Label unknown.");
+         return 1.0;
       }
       return myWeights.get (index);
    }
@@ -126,17 +123,15 @@ public class MarkerMapping {
     * 
     * @param expLabel
     * experimental marker label
-    * @return String model marker label
-    * @throws Exception
-    * if the given label is unknown
+    * @return String model marker label or null if the given label is unknown
     */
-   public String getModelLabelFromExp (String expLabel) throws Exception {
+   public String getModelLabelFromExp (String expLabel) {
       if (myExpLabels.contains (expLabel)) {
          int index = myExpLabels.indexOf (expLabel);
          return myModelLabels.get (index);
       }
       else {
-         throw new Exception ("Experimental label unknown.");
+         return null;
       }
    }
 

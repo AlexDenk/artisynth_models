@@ -87,9 +87,10 @@ public class ContactMonitor extends MonitorBase {
       // TODO: get the actual penetration depth of each contact event.
       writeContactToFile (t0);
    }
-   
+
    /**
     * Queries whether full report mode is used by this {@link ContactMonitor}
+    * 
     * @return
     */
    public boolean useFullReport () {
@@ -174,7 +175,7 @@ public class ContactMonitor extends MonitorBase {
       this.msgPath =
          ArtisynthPath
             .getSrcRelativePath (OpenSimTest.class, msgName).toString ();
-      writer = new PrintWriter (new FileWriter (msgPath, true));
+      writer = new PrintWriter (new FileWriter (msgPath, false));
       this.isActive = false;
    }
 }

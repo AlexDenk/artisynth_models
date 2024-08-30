@@ -17,10 +17,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import artisynth.core.femmodels.FemElement3dBase;
 import artisynth.core.femmodels.FemFactory;
 import artisynth.core.femmodels.FemModel.Ranging;
 import artisynth.core.femmodels.FemModel.SurfaceRender;
 import artisynth.core.femmodels.FemModel3d;
+import artisynth.core.femmodels.FemNode3d;
 import artisynth.core.gui.ControlPanel;
 import artisynth.core.inverse.ConnectorForceRenderer;
 import artisynth.core.inverse.ForceTarget;
@@ -33,6 +35,7 @@ import artisynth.core.inverse.MotionTargetTerm;
 import artisynth.core.inverse.TargetFrame;
 import artisynth.core.inverse.TargetPoint;
 import artisynth.core.inverse.TrackingController;
+import artisynth.core.materials.FemMaterial;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
@@ -80,6 +83,7 @@ import maspack.geometry.Vertex3d;
 import maspack.interpolation.Interpolation;
 import maspack.matrix.AxisAlignedRotation;
 import maspack.matrix.Point3d;
+import maspack.matrix.RigidTransform3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
 import maspack.render.RenderList;
@@ -115,7 +119,7 @@ public class OpenSimTest extends RootModel {
    // Current model
    MechModel myMech = new MechModel ();
    // All finite element meshes in the model
-   RenderableComponentList<FemModel3d> myMeshes = null;
+   List<FemModel3d> myMeshes = new ArrayList<FemModel3d> ();
    // Experimental and model marker names and weights
    MarkerMapping myMap;
    // Experimental marker trajectories
@@ -125,7 +129,7 @@ public class OpenSimTest extends RootModel {
    // Name of the current working directory
    String myName = null;
    // Scale of the model.
-   int myScale;
+   double myScale;
 
    // ----------------------------Nested classes--------------------------------
 
@@ -225,7 +229,7 @@ public class OpenSimTest extends RootModel {
       addModel (myMech);
       setSimulationProperties ();
       initializeOsim (myName, myScale);
-      //initializeFEM(myName, myScale);
+      initializeMeshes(myName, myScale);
       CollisionManager collMan = myMech.getCollisionManager ();
       setContactProps (collMan);
       initializeIOProbes (myName, myScale);
@@ -238,10 +242,14 @@ public class OpenSimTest extends RootModel {
       super.prerender (list);
       // Synchronize color bar/values in case they are changed. Do this *after*
       // super.prerender(), in case values are changed there.
-      // ColorBar cbar = (ColorBar)(renderables().get("colorBar"));
-      // cbar.setColorMap(femur.getColorMap());
-      // DoubleInterval range = femur.getStressPlotRange();
-      // cbar.updateLabels(range.getLowerBound(), range.getUpperBound());
+      for (int i = 0; i < myMeshes.size (); i++) {
+         ColorBar cbar =
+            (ColorBar)(renderables ()
+               .get (myMeshes.get (i).getName () + "_colorbar"));
+         cbar.setColorMap (myMeshes.get (i).getColorMap ());
+         DoubleInterval range = myMeshes.get (i).getStressPlotRange ();
+         cbar.updateLabels (range.getLowerBound (), range.getUpperBound ());
+      }
    }
 
    /**
@@ -270,7 +278,7 @@ public class OpenSimTest extends RootModel {
          rend.add (new ConnectorForceRenderer (c));
          int end = rend.size ();
          rend.get (end - 1).setRenderProps (props);
-         rend.get (end - 1).setArrowSize (scale / 1000);
+         rend.get (end - 1).setArrowSize (0.001 * scale);
          addMonitor (rend.get (end - 1));
       });
    }
@@ -284,7 +292,7 @@ public class OpenSimTest extends RootModel {
     * @param scale
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
-   public void setContactRenderProps (CollisionManager coll, int scale) {
+   public void setContactRenderProps (CollisionManager coll, double scale) {
       if (!(coll instanceof CollisionManager))
          throw new IllegalArgumentException (
             "Must use an object of class CollisionManager");
@@ -304,7 +312,7 @@ public class OpenSimTest extends RootModel {
     * Sets the rendering properties of every model marker within the root model.
     * 
     */
-   public void setMarkerRendering (int scale) {
+   public void setMarkerRendering (double scale) {
       myMarkers.forEach (m -> {
          RenderProps.setPointColor (m, Color.PINK);
       });
@@ -316,7 +324,23 @@ public class OpenSimTest extends RootModel {
          (TrackingController)controllers.get ("Motion controller");
       controller.getTargetPoints ().forEach (c -> {
          RenderProps.setPointColor (c, Color.WHITE);
-         RenderProps.setPointRadius (c, 0.01*scale);
+         RenderProps.setPointRadius (c, 0.01 * scale);
+      });
+   }
+   
+   /**
+    * Sets the rendering properties of every mesh within the root model.
+    * 
+    * @param scale
+    * Unit scaling factor for the current model (m = 1, mm = 1000)
+    */
+   public void setMeshRendering (double scale) {
+      if (scale < 0)
+         throw new IllegalArgumentException ("Scale factor must be > 0");
+      myMeshes.forEach (mesh -> {
+         RenderProps.setLineStyle (mesh, LineStyle.LINE);
+         RenderProps.setLineWidth (mesh, 1);
+         RenderProps.setLineColor (mesh, Color.BLACK);
       });
    }
 
@@ -326,7 +350,7 @@ public class OpenSimTest extends RootModel {
     * @param scale
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
-   public void setMuscleRenderProps (int scale) {
+   public void setMuscleRenderProps (double scale) {
       if (scale < 0)
          throw new IllegalArgumentException ("Scale factor must be > 0");
       myMuscles.forEach (msc -> {
@@ -350,7 +374,7 @@ public class OpenSimTest extends RootModel {
     * @param scale
     * Unit scaling factor for the current model (m = 1, mm = 1000)
     */
-   public void setRenderProps (CollisionManager coll, int scale) {
+   public void setRenderProps (CollisionManager coll, double scale) {
       if (!(coll instanceof CollisionManager))
          throw new IllegalArgumentException (
             "Must use an object of class CollisionManager");
@@ -360,7 +384,8 @@ public class OpenSimTest extends RootModel {
       RenderProps.setShading (myBodies, Shading.SMOOTH);
       setMuscleRenderProps (scale);
       setMarkerRendering (scale);
-      // setSurfaceRenderProps ();
+      setMeshRendering(scale);
+      setSurfaceRenderProps ();
       setViewerProps ();
    }
 
@@ -368,23 +393,17 @@ public class OpenSimTest extends RootModel {
     * Sets the render properties of the colour bars within the root model.
     */
    public void setSurfaceRenderProps () {
-      ColorBar cbar = new ColorBar (null);
-      // Stress surface rendering
-      myMeshes.forEach (mesh -> {
-         mesh.setSurfaceRendering (SurfaceRender.Stress);
-         mesh.setStressPlotRanging (Ranging.Auto);
-      });
-      // Set the properties of the corresponding colourbar.
-      // Name of the colourbar.
-      cbar.setName ("colorBar");
-      // Set the display to a float number with 2 decimal places.
-      cbar.setNumberFormat ("%.2f");
-      // Initialize the colourbar with 10 ticks.
-      cbar.populateLabels (0.0, 0.1, 10);
-      // Define, where the colour bar is to be shown (x and y position and also
-      // width and height.
-      cbar.setLocation (-100, 0.1, 20, 0.8);
-      addRenderable (cbar);
+      ColorBar[] cbar = new ColorBar[myMeshes.size ()];
+      for (int i = 0; i < myMeshes.size (); i++) {
+         myMeshes.get (i).setSurfaceRendering (SurfaceRender.Stress);
+         myMeshes.get (i).setStressPlotRanging (Ranging.Auto);
+         cbar[i] = new ColorBar();
+         cbar[i].setName (myMeshes.get (i).getName () + "_colorbar");
+         cbar[i].setNumberFormat ("%.2f");
+         cbar[i].populateLabels (0.0, 0.1, 10);
+         cbar[i].setLocation (-100, 0.1 * i, 20, 0.8);
+         addRenderable (cbar[i]);
+      }
    }
 
    /**
@@ -1346,44 +1365,37 @@ public class OpenSimTest extends RootModel {
       fc.showOpenDialog (null);
       return fc.getSelectedFile ().getName ();
    }
+   
+   private void importAndSetupFemur (String name, double scale) throws IOException {
+      FemModel3d femur = readMeshFile(name, "Femur", scale);
+      myMeshes.add (femur);
+      
+      //femur.getFrame ().setPose (myBodies.get ("femur_l").getPose ());
+      femur.setDensity (1000);
+      femur.setMaterial (new LinearMaterial (5e9, 0.35));
+      femur.setParticleDamping (0.1);
+      femur.setStiffnessDamping (0.1);
+   }
+   
+   private void importAndSetupShank (String name, double scale) throws IOException {
+      FemModel3d shank = readMeshFile(name, "TibiaFibula", scale);
+      myMeshes.add (shank);
+      
+      //shank.getFrame ().setPose (myBodies.get("tibia_l").getPose ());
+      shank.setDensity (1000);
+      shank.setMaterial (new LinearMaterial (5e9, 0.35));
+      shank.setParticleDamping (0.1);
+      shank.setStiffnessDamping (0.1);
+   }
 
    /**
     * Initializes the FEM Meshes
     * 
     * @throws IOException
     */
-   private void initializeFEM (String name, int scale) throws IOException {
-      // Femur
-      String femurFileName = name + "/Meshes/C01L_Femur.obj";
-      File femurInput =
-         ArtisynthPath.getSrcRelativeFile (this, femurFileName);
-      PolygonalMesh femurMesh = new PolygonalMesh ();
-      FemModel3d femur = new FemModel3d ("femur");
-      femurMesh.read (femurInput);
-      FemFactory.createFromMesh (femur, femurMesh, 1.2);
-      femur.scaleDistance (scale / 1000);
-      femur.scaleMass (scale / 1000);
-      femur.setDensity (2000);
-      femur.setMaterial (new LinearMaterial (5e9, 0.35));
-      femur.setParticleDamping (0.1);
-      femur.setStiffnessDamping (0.1);
-      myMech.addModel (femur);
-
-      // Tibia and Fibula
-      String shankFileName = name + "/Meshes/C01L_TibiaFibula.obj";
-      File shankInput =
-         ArtisynthPath.getSrcRelativeFile (this, shankFileName);
-      PolygonalMesh shankMesh = new PolygonalMesh ();
-      FemModel3d shank = new FemModel3d ("shank");
-      shankMesh.read (shankInput);
-      FemFactory.createFromMesh (shank, shankMesh, 1.2);
-      shank.scaleDistance(scale / 1000);
-      shank.scaleMass(scale / 1000);
-      shank.setDensity (2000);
-      shank.setMaterial (new LinearMaterial (5e9, 0.35));
-      shank.setParticleDamping (0.1);
-      shank.setStiffnessDamping (0.1);
-      myMech.addModel (shank);
+   private void initializeMeshes (String name, double scale) throws IOException {
+      importAndSetupFemur(name, scale);
+      importAndSetupShank(name, scale);
 
       // not used as long as the Ansys reader is not called
       // public String inputNodes = PathFinder.
@@ -1393,7 +1405,7 @@ public class OpenSimTest extends RootModel {
       // Generate all FEM related geometries.
       // AnsysReader.read (femur,inputNodes,inputElems,2E-6,null,0);
    }
-   
+
    /**
     * Defines all in- and outgoing probes for the model. Ingoing probes can be
     * experimental marker trajectories, forces or generalized coordinates,
@@ -1407,7 +1419,7 @@ public class OpenSimTest extends RootModel {
     * @throws IOException
     * if specified files or file paths are invalid
     */
-   private void initializeIOProbes (String name, int scale) throws IOException {
+   private void initializeIOProbes (String name, double scale) throws IOException {
       // Read all input data
       myMap = readMarkerFile (name);
       myMotion = readTRCFile (name, scale, myMap);
@@ -1443,7 +1455,7 @@ public class OpenSimTest extends RootModel {
     * Unit scale factor for the current model (m = 1, mm = 1000)
     * @throws IOException 
     */
-   private void initializeOsim (String myName, int scale) throws IOException {
+   private void initializeOsim (String myName, double scale) throws IOException {
       readOsimFile (myName, scale);    
       myBodies = getBodiesFromOsim ();
       myJoints = getJointsFromOsim (myBodies);
@@ -1566,6 +1578,32 @@ public class OpenSimTest extends RootModel {
    }
 
    /**
+    * Reads a mesh file named by label in the specified working folder and creates
+    * corresponding models and materials.
+    * 
+    * @param name
+    * Name specifier of the current working directory
+    * @param label
+    * label of the file, that contains the desired mesh
+    * @return {@link FemModel3d} 
+    * @throws IOException
+    * if the files do not exist
+    */
+   private FemModel3d readMeshFile (String name, String label, double scale) throws IOException {
+      String fileName = name + "/Meshes/C01L_" + label + ".obj";
+      File file =
+         ArtisynthPath.getSrcRelativeFile (this, fileName);
+      PolygonalMesh mesh = new PolygonalMesh ();
+      FemModel3d model = new FemModel3d (label);
+      mesh.read (file);
+      FemFactory.createFromMesh (model, mesh, 1.2);
+      myMech.addModel (model);
+      model.scaleDistance (scale / 1000);
+      model.scaleMass (scale / 1000);
+      return model;
+   }
+
+   /**
     * Reads in the .osim file in the specified working folder and creates a
     * corresponding model the current {@link MechModel}.
     * 
@@ -1574,7 +1612,7 @@ public class OpenSimTest extends RootModel {
     * @param scale
     * Scaling factor for the current model (m = 1, mm = 1000)
     */
-   private void readOsimFile (String name, int scale) {
+   private void readOsimFile (String name, double scale) {
       String modelPath = myName + "/" + myName + "_scaled.osim";
       File osimFile = ArtisynthPath.getSrcRelativeFile (this, modelPath);
       String geometryPath = myName + "/Geometry/";
@@ -1602,7 +1640,7 @@ public class OpenSimTest extends RootModel {
     * if the file or file path are invalid
     */
    private MarkerMotionData readTRCFile (
-      String name, int scale, MarkerMapping map)
+      String name, double scale, MarkerMapping map)
       throws IOException {
       String trcName = name + "/Input/" + name + "_positions.trc";
       File trcFile = ArtisynthPath.getSrcRelativeFile (this, trcName);
@@ -1747,7 +1785,7 @@ public class OpenSimTest extends RootModel {
       myMech.setInertialDamping (2.8);
       myMech.setPointDamping (10.0);
       // Define scale (mm = 1000, or m = 1)
-      myScale = 1;
+      myScale = 1.0;
       myMech.setGravity (new Vector3d (0, -9.81, 0));
       if (myMech.getGravity ().equals (new Vector3d (0, 0, 0))) {
          JFrame frame = new JFrame ("Warning");
@@ -1812,12 +1850,46 @@ public class OpenSimTest extends RootModel {
     * @param meshes
     * list of {@link FemModel3d} objects
     */
-   private void writeFEMInfo (
-      StringBuilder output, RenderableComponentList<FemModel3d> meshes) {
+   private void writeFEMInfo (StringBuilder output, List<FemModel3d> meshes) {
       output
          .append ("%%FINITE ELEMENTS%%\n").append (
             "%%------------------------------------------------------------%%\n");
-      // .append ("Number of meshes: ").append (meshes.size ()).append ("\n");
+      output
+         .append ("\nNumber of Meshes: ").append (myMeshes.size ())
+         .append ("\n\n");
+      myMeshes.forEach (mesh -> {
+         output
+            .append (mesh.getName ()).append ("\t")
+            .append (String.format ("%.3f", mesh.getMass ())).append ("\tkg\n")
+            .append ("Number of Nodes: ").append (mesh.numNodes ())
+            .append ("\n").append ("Number of Elements: ")
+            .append (mesh.numAllElements ()).append ("\n").append ("Density: ")
+            .append (mesh.getDensity ()).append ("\tkg/m^3\n");
+         LinearMaterial material = (LinearMaterial)mesh.getMaterial ();
+         output
+            .append ("Young's modulus: ").append ("\t")
+            .append (material.getYoungsModulus ()).append ("\tN/m^2\n")
+            .append ("Poisson's ratio: ").append (material.getPoissonsRatio ())
+            .append ("\n");
+
+         PointList<FemNode3d> nodes = mesh.getNodes ();
+         nodes.forEach (n -> {
+            output
+               .append (n.getNumber ()).append ("\t")
+               .append (n.getPosition ().toString ("%.3f")).append ("\n");
+         });
+
+         ArrayList<FemElement3dBase> elements = mesh.getAllElements ();
+         elements.forEach (elem -> {
+            output.append (elem.getNumber ()).append ("\t");
+            FemNode3d[] elemNodes = elem.getNodes ();
+            for (FemNode3d en : elemNodes) {
+               output.append (en.getNumber ()).append ("\t");
+            }
+            output.append ("\n");
+         });
+         output.append ("\n");
+      });
    }
 
    /**
@@ -1901,8 +1973,8 @@ public class OpenSimTest extends RootModel {
          ArrayList<Vertex3d> vertices = rb.getSurfaceMesh ().getVertices ();
          vertices.forEach (vt -> {
             output
-               .append (vt.getIndex ()).append ("\t").append (vt.pnt)
-               .append ("\n");
+               .append (vt.getIndex ()).append ("\t")
+               .append (vt.getPosition ().toString ("%.3f")).append ("\n");
          });
          ArrayList<Face> faces = rb.getSurfaceMesh ().getFaces ();
          faces.forEach (f -> {

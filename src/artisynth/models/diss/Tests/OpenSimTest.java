@@ -10,10 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -25,17 +22,10 @@ import artisynth.core.femmodels.FemModel3d;
 import artisynth.core.femmodels.FemNode3d;
 import artisynth.core.gui.ControlPanel;
 import artisynth.core.inverse.ConnectorForceRenderer;
-import artisynth.core.inverse.ForceTarget;
 import artisynth.core.inverse.FrameExciter;
-import artisynth.core.inverse.FrameExciter.WrenchComponent;
-import artisynth.core.inverse.FrameExciter.WrenchDof;
 import artisynth.core.inverse.InverseManager;
 import artisynth.core.inverse.InverseManager.ProbeID;
-import artisynth.core.inverse.MotionTargetTerm;
-import artisynth.core.inverse.TargetFrame;
-import artisynth.core.inverse.TargetPoint;
 import artisynth.core.inverse.TrackingController;
-import artisynth.core.materials.FemMaterial;
 import artisynth.core.materials.LinearMaterial;
 import artisynth.core.materials.Thelen2003AxialMuscle;
 import artisynth.core.mechmodels.CollisionBehavior;
@@ -43,14 +33,11 @@ import artisynth.core.mechmodels.CollisionBehaviorList;
 import artisynth.core.mechmodels.CollisionManager;
 import artisynth.core.mechmodels.Frame;
 import artisynth.core.mechmodels.FrameMarker;
-import artisynth.core.mechmodels.FrameTarget;
 import artisynth.core.mechmodels.JointBase;
 import artisynth.core.mechmodels.MechModel;
 import artisynth.core.mechmodels.MechSystemSolver;
 import artisynth.core.mechmodels.MechSystemSolver.Integrator;
 import artisynth.core.mechmodels.MechSystemSolver.PosStabilization;
-import artisynth.core.mechmodels.MeshComponentList;
-import artisynth.core.mechmodels.MotionTargetComponent;
 import artisynth.core.mechmodels.MultiPointMuscle;
 import artisynth.core.mechmodels.PlanarConnector;
 import artisynth.core.mechmodels.PointList;
@@ -60,30 +47,26 @@ import artisynth.core.modelbase.Controller;
 import artisynth.core.modelbase.ModelComponent;
 import artisynth.core.modelbase.RenderableComponentList;
 import artisynth.core.opensim.OpenSimParser;
+import artisynth.core.opensim.customjoint.OpenSimCustomJoint;
 import artisynth.core.probes.DataFunction;
 import artisynth.core.probes.MarkerMotionData;
-import artisynth.core.probes.NumericControlProbe;
 import artisynth.core.probes.NumericInputProbe;
 import artisynth.core.probes.NumericOutputProbe;
-import artisynth.core.probes.TRCReader;
 import artisynth.core.renderables.ColorBar;
 import artisynth.core.util.ArtisynthPath;
 import artisynth.core.workspace.RootModel;
 import artisynth.models.diss.ContactMonitor;
 import artisynth.models.diss.CoordinateData;
 import artisynth.models.diss.CustomTRCReader;
-import artisynth.models.diss.MOTReader;
 import artisynth.models.diss.ForceData;
+import artisynth.models.diss.MOTReader;
 import artisynth.models.diss.MarkerMapping;
 import artisynth.models.diss.MotionTargetController;
-
 import maspack.geometry.Face;
 import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
-import maspack.interpolation.Interpolation;
 import maspack.matrix.AxisAlignedRotation;
 import maspack.matrix.Point3d;
-import maspack.matrix.RigidTransform3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
 import maspack.render.RenderList;
@@ -130,78 +113,7 @@ public class OpenSimTest extends RootModel {
    String myName = null;
    // Scale of the model.
    double myScale;
-
-   // ----------------------------Nested classes--------------------------------
-
-   public class MomentArmFunction implements DataFunction, Clonable {
-      // Frame used for moment arm calculation
-      Frame myFrame;
-      // cop identifier (left or right)
-      String mySide;
-      // PrintWriter to write computed wrenches to a file
-      PrintWriter writer;
-      // Name of the file, where computed wrenches are written to
-      String msgName;
-      // Path to the file, where computed wrenches are written to
-      String msgPath;
-
-      public MomentArmFunction (Frame frame, String side) {
-         this.myFrame = frame;
-         this.mySide = side;
-         // initialize writer
-         this.msgName = myName + "/Output/" + myName + "_message_file.txt";
-         this.msgPath =
-            ArtisynthPath
-               .getSrcRelativePath (OpenSimTest.class, msgName).toString ();
-         try {
-            writer = new PrintWriter (new FileWriter (msgPath, true));
-         }
-         catch (IOException e) {
-            e.printStackTrace ();
-         }
-      }
-
-      public Object clone () throws CloneNotSupportedException {
-         return super.clone ();
-      }
-
-      @Override
-      public void eval (VectorNd vec, double t, double trel) {
-         Vector3d ref = myFrame.getPosition ();
-         int frame = myForces.getFrame (t);
-         // calculate moment arm from current calcn position to cop
-         Vector3d cop = myForces.getData (frame, mySide + " COP");
-         Vector3d arm = new Vector3d ();
-         arm.sub (cop, ref);
-         // calculate resulting moment
-         Vector3d grf = new Vector3d ();
-         vec.getSubVector (new int[] { 0, 1, 2 }, grf);
-         Vector3d grm = new Vector3d ();
-         vec.getSubVector (new int[] { 3, 4, 5 }, grm);
-         Vector3d momRes = new Vector3d ();
-         momRes.cross (arm, grf);
-         momRes.add (grm);
-         // apply wrench
-         Wrench wrench =
-            new Wrench (
-               vec.get (0), vec.get (1), vec.get (2), momRes.x, momRes.y,
-               momRes.z);
-         myFrame.setExternalForce (wrench);
-         // add wrench to message file
-         writeToFile (wrench);
-      }
-
-      private void writeToFile (Wrench wrench) {
-         StringBuilder message = new StringBuilder ();
-         message
-            .append ("\nCOMPUTED WRENCH FOR: ")
-            .append (myFrame.getName ().toUpperCase ()).append ("\n");
-         message.append (wrench.toString ("%.3f")).append ("\n");
-         writer.print (message);
-         writer.flush ();
-      }
-   }
-
+   
    // -----------------------------Constructors---------------------------------
    public OpenSimTest () {
    }
@@ -215,15 +127,9 @@ public class OpenSimTest extends RootModel {
    }
 
    // -------------------------Instance Methods---------------------------------
-   
-   //TODO: Subdivide step 1 (gen coords) and step 2 (dynamics) in two subclasses
-   
    @Override
    public void build (String[] args) throws IOException {
       super.build (args);
-      // Get model name specifier from user
-      //JFileChooser fc = new JFileChooser ();
-      //myName = getNameFromFileDiaglog (fc);
       myName = "OpenSimTest";
       myMech.setName (myName);
       addModel (myMech);
@@ -475,40 +381,7 @@ public class OpenSimTest extends RootModel {
       }
    }
 
-   // --------------------------Private Instance Methods------------------------
-   /**
-    * Defines a tracking controller that calculates muscle activations based on
-    * trajectories and sets its controller properties.
-    * 
-    * @param motion
-    * {@link MarkerMotionData}
-    * @param map
-    * {@link MarkerMapping}
-    * @param name
-    * Name specifier of the current working directory
-    */
-   private TrackingController addControllerAndProps (
-      MarkerMotionData motion, MarkerMapping map, String name) {
-      TrackingController controller =
-         new TrackingController (myMech, "Motion controller");
-      // MotionTargetController motcon =
-      // new MotionTargetController (myMech, "Motion controller", name);
-      // motcon.addMotionData (motion, map);
-      controller.setUseKKTFactorization (true);
-      controller.setComputeIncrementally (false);
-      controller.setExcitationDamping ();
-      controller.setL2Regularization (10);
-      // Adjust MotionTargetTerm properties
-      MotionTargetTerm motionTerm = controller.getMotionTargetTerm ();
-      motionTerm.setChaseTime (getMaxStepSize ());
-      motionTerm.setUsePDControl (true);
-      motionTerm.setKd (1 / getMaxStepSize ());
-      motionTerm.setKp (1 / (getMaxStepSize () * motionTerm.getChaseTime ()));
-      controller.createPanel (this);
-      addController (controller);
-      return controller;
-   }
-   
+   // --------------------------Private Instance Methods------------------------ 
    /**
     * Adds the data stored in {@code myCoords} as a {@link NumericInputProbe}
     * per joint, if available.
@@ -527,88 +400,6 @@ public class OpenSimTest extends RootModel {
             }
          });
       }
-   }
-
-   /**
-    * Adds all model muscles and three frame exciters each for pelvis and both
-    * calcanei to the controller.
-    * 
-    * @param controller
-    * {@link TrackingController}
-    */
-   private void addExcitersToController (
-      TrackingController controller, ForceData forces) {
-      // Muscles
-      // controller.addExciters (myMuscles);
-      if (forces == null)
-         return;
-      myBodies.forEach (body -> {
-         double maxForce = 100 * body.getMass ();
-         double maxMoment = 5 * body.getMass ();
-         createAndAddFrameExciters (
-            controller, myMech, body, maxForce, maxMoment);
-      });
-      // Frame exciters calcaneus right
-      // RigidBody calcnR = myBodies.get ("calcn_r");
-      // double maxForce = forces.getMaxForce ("Right GRF");
-      // double maxMoment = forces.getMaxMoment ("Right GRM");
-      // createAndAddFrameExciters (
-      // controller, myMech, calcnR, maxForce, maxMoment);
-      // Frame exciters calcaneus left
-      // RigidBody calcnL = myBodies.get ("calcn_l");
-      // maxForce = forces.getMaxForce ("Left GRF");
-      // maxMoment = forces.getMaxMoment ("Left GRM");
-      // createAndAddFrameExciters (
-      // controller, myMech, calcnL, maxForce, maxMoment);
-      // Frame exciters pelvis
-      // RigidBody pelvis = myBodies.get ("pelvis");
-      // maxForce = 1000;
-      // maxMoment = 20;
-      // createAndAddFrameExciters (
-      // controller, myMech, pelvis, maxForce, maxMoment);
-   }
-
-   /**
-    * Adds the data stored in {@code myForces} as individual {@link NumericInputProbe} if
-    * available.
-    * 
-    * @param forces
-    * {@link ForceData}
-    */
-   private void addForceInputProbes (ForceData forces) {
-      if (forces != null) {
-         RigidBody calcnR = myBodies.get ("calcn_r");
-         createForceInputProbe (forces, calcnR, "Right");
-         RigidBody calcnL = myBodies.get ("calcn_l");
-         createForceInputProbe (forces, calcnL, "Left");
-      }
-   }
-
-   /**
-    * Defines the frame targets of the {@link MotionTargetTerm} of the
-    * {@link TrackingController} and creates a {@link NumericInputProbe} for
-    * each target.
-    * 
-    * @param controller
-    * TrackingController
-    * @param motion
-    * experimental marker trajectories
-    */
-   private void addFrameTargetsAndProbes (
-      TrackingController controller, MarkerMotionData motion) {
-      if (motion == null) {
-         return;
-      }
-      myBodies.forEach (b -> {
-         TargetFrame target = controller.addFrameTarget (b);
-         try {
-            createFrameTargetInputProbe (target, motion, "orientation");
-            createFrameTargetInputProbe (target, motion, "position");
-         }
-         catch (IOException e) {
-            e.printStackTrace ();
-         }
-      });
    }
 
    /**
@@ -683,100 +474,6 @@ public class OpenSimTest extends RootModel {
    }
    
    /**
-    * Defines the point targets of the {@link MotionTargetTerm} of the
-    * {@link TrackingController} and creates a {@link NumericInputProbe} for each
-    * target.
-    * 
-    * @param controller
-    * TrackingController
-    * @param map
-    * links the model marker names to the experimental marker names and their
-    * weights
-    * @param motion
-    * experimental marker motion data
-    */
-   private void addPointTargetsAndProbes (
-      TrackingController controller, MarkerMapping map,
-      MarkerMotionData motion) {
-      if (motion == null || map == null)
-         return;
-      double start = motion.getFrameTime (0);
-      double stop = motion.getFrameTime (motion.numFrames () - 1);
-      myMarkers.forEach (mkr -> {
-         if (map.getExpLabelFromModel (mkr.getName ()) != null) {
-            // Add point targets
-            Double weight = map.getMarkerWeight (mkr.getName ());
-            TargetPoint target = controller.addPointTarget (mkr, weight);
-            // Add point target probes
-            NumericInputProbe targetProbe =
-               new NumericInputProbe (target, "position", start, stop);
-            targetProbe.setName (mkr.getName () + "_position");
-            for (int i = 0; i < motion.numFrames (); i++) {
-               VectorNd data = new VectorNd ();
-               String label = map.getExpLabelFromModel (mkr.getName ());
-               data.append (motion.getMarkerPosition (i, label).x);
-               data.append (motion.getMarkerPosition (i, label).y);
-               data.append (motion.getMarkerPosition (i, label).z);
-               double time = motion.getFrameTime (i);
-               targetProbe.addData (time, data);
-               // Adjust initial target position
-               if (i == 0) {
-                  Point3d pos = (Point3d)motion.getMarkerPosition (i, label);
-                  target.setPosition (pos);
-               }
-            }
-            addInputProbe (targetProbe);
-         }
-      });
-   }
-   
-   /**
-    * Creates a complete set of FrameExciters for a given frame and adds them to
-    * a MechModel and a tracking controller.
-    *
-    * @param ctrl
-    * tracking controller to add the exciters to
-    * @param mech
-    * MechModel to add the exciters to
-    * @param frame
-    * frame for which the exciters should be created
-    * @param maxForce
-    * maximum translational force along any axis
-    * @param maxMoment
-    * maximum moment about any axis
-    * 
-    * @author John Lloyd
-    */
-   private FrameExciter[] createAndAddFrameExciters (
-      TrackingController ctrl, MechModel mech, Frame frame, double maxForce,
-      double maxMoment) {
-      FrameExciter[] exs = new FrameExciter[3];
-      exs[0] = new FrameExciter (null, frame, WrenchDof.FX, maxForce);
-      exs[1] = new FrameExciter (null, frame, WrenchDof.FY, maxForce);
-      exs[2] = new FrameExciter (null, frame, WrenchDof.FZ, maxForce);
-      //exs[3] = new FrameExciter (null, frame, WrenchDof.MX, maxMoment);
-      //exs[4] = new FrameExciter (null, frame, WrenchDof.MY, maxMoment);
-      //exs[5] = new FrameExciter (null, frame, WrenchDof.MZ, maxMoment);
-      // if the frame has a name, use this to create names for the exciters
-      if (frame.getName () != null) {
-         WrenchDof[] wcs = WrenchDof.values ();
-         for (int i = 0; i < exs.length; i++) {
-            exs[i]
-               .setName (
-                  frame.getName () + "_" + wcs[i].toString ().toLowerCase ());
-         }
-      }
-      Double[] weights = new Double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
-      if (mech != null) {
-         for (int i = 0; i < exs.length; i++) {
-            mech.addForceEffector (exs[i]);
-            ctrl.addExciter (1.0, exs[i]);
-         }
-      }
-      return exs;
-   }
-   
-   /**
     * Adds a collision response {@code collResp} and behavior {@code collBehav}
     * object for the compliant contact between {@code bodyA} and {@code bodyB},
     * based on the given parameters {@code comp} and {@code damp}.
@@ -829,79 +526,6 @@ public class OpenSimTest extends RootModel {
       }
       angle.setActive (true);
       addInputProbe (angle);
-   }
-   
-   /**
-    * Creates a {@link NumericControlProbe} for the specified body {@code frame}
-    * and fills it with the force data in {@code forces}, based on the
-    * identifier {@code side} (i.e. left or right).
-    * 
-    * @param forces
-    * {@link ForceTarget}
-    * @param frame
-    * Rigid body to apply the input probe to
-    * @param side
-    * left or right
-    * 
-    */
-   private void createForceInputProbe (
-      ForceData forces, Frame frame, String side) {
-      NumericControlProbe grf = new NumericControlProbe ();
-      grf.setModel (myMech);
-      grf.setName (frame.getName () + " ground reaction forces");
-      double duration =
-         forces.getFrameTime (forces.numFrames () - 1)
-         - forces.getFrameTime (0);
-      grf.setStartStopTimes (0.0, duration);
-      grf.setInterpolationOrder (Interpolation.Order.Cubic);
-      grf.setDataFunction (new MomentArmFunction (frame, side));
-      grf.setVsize (6);
-
-      for (int i = 0; i < forces.numFrames (); i++) {
-         VectorNd force = new VectorNd (6);
-         double time = forces.getFrameTime (i);
-         force.add (0, forces.getData (i, side + " GRF").x);
-         force.add (1, forces.getData (i, side + " GRF").y);
-         force.add (2, forces.getData (i, side + " GRF").z);
-         force.add (3, forces.getData (i, side + " GRM").x);
-         force.add (4, forces.getData (i, side + " GRM").y);
-         force.add (5, forces.getData (i, side + " GRM").z);
-         grf.addData (time, force);
-      }
-      grf.setActive (true);
-      addInputProbe (grf);
-   }
-
-   /**
-    * Generates a {@link NumericInputProbe} of the specified property based on
-    * the associated input files from parametric control runs.
-    * 
-    * @param frame
-    * component related to the input probe
-    * @param motion
-    * experimental motion data containing the time series
-    * @param prop
-    * property name
-    * @return VectorNd array containing the probe data
-    * @throws IOException
-    * if attached file doesn't exist
-    */
-   private void createFrameTargetInputProbe (
-      Frame frame, MarkerMotionData motion, String prop)
-      throws IOException {
-      String file =
-         ArtisynthPath
-            .getSrcRelativePath (
-               this,
-               myName + "/Input/" + frame.getName () + " " + prop + ".txt");
-      NumericInputProbe probe = new NumericInputProbe (frame, prop, file);
-      probe.setName (frame.getName () + " " + prop);
-      VectorNd[] data = new VectorNd[motion.numFrames ()];
-      for (int i = 0; i < data.length; i++) {
-         double time = motion.getFrameTime (i);
-         data[i] = probe.getData (time);
-      }
-      addInputProbe (probe);
    }
    
    /**
@@ -1351,20 +975,6 @@ public class OpenSimTest extends RootModel {
       });
       return myMuscles;
    }
-
-   /**
-    * Returns the name of the current working directory folder.
-    * 
-    * @param fc
-    * @return
-    */
-   private String getNameFromFileDiaglog (JFileChooser fc) {
-      fc.setCurrentDirectory (ArtisynthPath.getSrcRelativeFile (this, myName));
-      fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY);
-      fc.setDialogTitle ("Please select a working directory.");
-      fc.showOpenDialog (null);
-      return fc.getSelectedFile ().getName ();
-   }
    
    private void importAndSetupFemur (String name, double scale) throws IOException {
       FemModel3d femur = readMeshFile(name, "Femur", scale);
@@ -1425,22 +1035,9 @@ public class OpenSimTest extends RootModel {
       myMotion = readTRCFile (name, scale, myMap);
       myForces = readForceFile (name);
       myCoords = readCoordsFile (name);
-      
-      // Setup the tracking controller
-      //TrackingController controller =
-      //   addControllerAndProps (myMotion, myMap, name);
-      //addExcitersToController (controller, myForces);
-      //addPointTargetsAndProbes (controller, myMap, myMotion);
-      //addFrameTargetsAndProbes (controller, myMotion);
-      //addForceInputProbes (myForces);
-
       // Parametric control
       addCoordsInputProbes (myCoords);
-  
       // Add output probes
-      // TODO: Numeric Monitor Probes for later mesh evaluation (for cases,
-      // where the data is not simply collected but generated by a function
-      // within the probe itself
       addNumOutputProbesAndPanel (myMotion, null);
       addBreakPoint (myMotion.getFrameTime (myMotion.numFrames () - 1));
    }

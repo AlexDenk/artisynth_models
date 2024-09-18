@@ -171,7 +171,7 @@ public class InverseTest extends RootModel {
       MarkerMotionData motion, MarkerMapping map, String name) {
       TrackingController controller =
          new TrackingController (myMech, "Motion controller");
-      controller.setUseKKTFactorization (true);
+      controller.setUseKKTFactorization (false);
       controller.setComputeIncrementally (false);
       controller.setExcitationDamping ();
       controller.setL2Regularization ();
@@ -203,8 +203,8 @@ public class InverseTest extends RootModel {
       // controller.addExciters (myMuscles);
       // Frame Exciters
       myBodies.forEach (body -> {
-         double maxForce = 10 * body.getMass ();
-         double maxMoment = 5 * body.getMass ();
+         double maxForce = 5 * body.getMass ();
+         double maxMoment = 2 * body.getMass ();
          createAndAddFrameExciters (
             controller, myMech, body, maxForce, maxMoment);
       });
@@ -465,11 +465,11 @@ public class InverseTest extends RootModel {
       myJoints.forEach (jt -> {
          setJointCompliance (jt, compMagnitude);
          switch (jt.getName ()) {
-            case "r shoulder":
+            case "r_shoulder":
                range.set (-90, 180);
                jt.setCoordinateRangeDeg (0, range);
                break;
-            case "r elbow":
+            case "r_elbow":
                range.set (0, 130);
                jt.setCoordinateRangeDeg (0, range);
                break;

@@ -173,13 +173,13 @@ public class InverseTest extends RootModel {
          new TrackingController (myMech, "Motion controller");
       controller.setUseKKTFactorization (false);
       controller.setComputeIncrementally (false);
-      controller.setExcitationDamping ();
-      controller.setL2Regularization ();
+      controller.setExcitationDamping (1);
+      controller.setL2Regularization (1e-4);
       // Adjust MotionTargetTerm properties
       MotionTargetTerm motionTerm = controller.getMotionTargetTerm ();
       motionTerm.setUsePDControl (true);
-      motionTerm.setKd (1 / getMaxStepSize ());
-      motionTerm.setKp (1 / (getMaxStepSize () * motionTerm.getChaseTime ()));
+      motionTerm.setKd (20);
+      motionTerm.setKp (2000);
       controller.createPanel (this);
       addController (controller);
       return controller;
@@ -200,13 +200,13 @@ public class InverseTest extends RootModel {
 
    private void addExcitersToController (TrackingController controller) {
       // Muscles
-      // controller.addExciters (myMuscles);
+      controller.addExciters (myMuscles);
       // Frame Exciters
       myBodies.forEach (body -> {
-         double maxForce = 5 * body.getMass ();
-         double maxMoment = 2 * body.getMass ();
-         createAndAddFrameExciters (
-            controller, myMech, body, maxForce, maxMoment);
+         double maxForce = 1 * body.getMass ();
+         double maxMoment = 3 * body.getMass ();
+         //createAndAddFrameExciters (
+         //   controller, myMech, body, maxForce, maxMoment);
       });
    }
 
@@ -540,8 +540,8 @@ public class InverseTest extends RootModel {
       TrackingController controller =
          addControllerAndProps (myMotion, myMap, name);
       addExcitersToController (controller);
-      //addPointTargetsAndProbes (controller, myMap, myMotion);
-      addFrameTargetsAndProbes (controller, myMotion);
+      addPointTargetsAndProbes (controller, myMap, myMotion);
+      //addFrameTargetsAndProbes (controller, myMotion);
 
       // Parametric control
       //addCoordsInputProbes (myCoords);

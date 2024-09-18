@@ -490,10 +490,10 @@ public class OpenSimTest extends RootModel {
       MarkerMotionData motion, MarkerMapping map, String name) {
       TrackingController controller =
          new TrackingController (myMech, "Motion controller");
-      controller.setUseKKTFactorization (true);
+      controller.setUseKKTFactorization (false);
       controller.setComputeIncrementally (false);
-      controller.setExcitationDamping ();
-      controller.setL2Regularization (10);
+      controller.setExcitationDamping (1);
+      controller.setL2Regularization (1);
       // Adjust MotionTargetTerm properties
       MotionTargetTerm motionTerm = controller.getMotionTargetTerm ();
       motionTerm.setUsePDControl (true);
@@ -538,8 +538,8 @@ public class OpenSimTest extends RootModel {
       if (forces == null)
          return;
       myBodies.forEach (body -> {
-         double maxForce = 100 * body.getMass ();
-         double maxMoment = 5 * body.getMass ();
+         double maxForce = 20 * body.getMass ();
+         double maxMoment = 200 * body.getMass ();
          createAndAddFrameExciters (
             controller, myMech, body, maxForce, maxMoment);
       });

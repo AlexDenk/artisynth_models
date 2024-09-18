@@ -173,13 +173,13 @@ public class InverseTest extends RootModel {
          new TrackingController (myMech, "Motion controller");
       controller.setUseKKTFactorization (false);
       controller.setComputeIncrementally (false);
-      controller.setExcitationDamping (1);
-      controller.setL2Regularization (1e-4);
+      controller.setExcitationDamping ();
+      controller.setL2Regularization (1);
       // Adjust MotionTargetTerm properties
       MotionTargetTerm motionTerm = controller.getMotionTargetTerm ();
       motionTerm.setUsePDControl (true);
-      motionTerm.setKd (20);
-      motionTerm.setKp (2000);
+      motionTerm.setKd (100);
+      motionTerm.setKp (10000);
       controller.createPanel (this);
       addController (controller);
       return controller;
@@ -205,8 +205,8 @@ public class InverseTest extends RootModel {
       myBodies.forEach (body -> {
          double maxForce = 1 * body.getMass ();
          double maxMoment = 3 * body.getMass ();
-         //createAndAddFrameExciters (
-         //   controller, myMech, body, maxForce, maxMoment);
+         createAndAddFrameExciters (
+            controller, myMech, body, maxForce, maxMoment);
       });
    }
 
@@ -540,8 +540,8 @@ public class InverseTest extends RootModel {
       TrackingController controller =
          addControllerAndProps (myMotion, myMap, name);
       addExcitersToController (controller);
-      addPointTargetsAndProbes (controller, myMap, myMotion);
-      //addFrameTargetsAndProbes (controller, myMotion);
+      //addPointTargetsAndProbes (controller, myMap, myMotion);
+      addFrameTargetsAndProbes (controller, myMotion);
 
       // Parametric control
       //addCoordsInputProbes (myCoords);

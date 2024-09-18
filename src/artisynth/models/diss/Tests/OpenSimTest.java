@@ -1367,7 +1367,7 @@ public class OpenSimTest extends RootModel {
       TrackingController controller =
          addControllerAndProps (myMotion, myMap, name);
       addExcitersToController (controller, myForces);
-      //addPointTargetsAndProbes (controller, myMap, myMotion);
+      addPointTargetsAndProbes (controller, myMap, myMotion);
       addFrameTargetsAndProbes (controller, myMotion);
       //addForceInputProbes (myForces);
 

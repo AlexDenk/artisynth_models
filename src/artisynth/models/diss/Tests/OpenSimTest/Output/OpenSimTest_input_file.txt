@@ -33850,60 +33850,6 @@ Number of muscle wrappings: 0
 Number of Meshes: 0
 
 
-%%PROBES%%
-%%------------------------------------------------------------%%
-
-CONTROLLER INFORMATION
-Use motion targets : true
-Use KKT Factorization: false
-Incremental computation: false
-Use timestep scaling: false
-Integrator: ConstrainedBackwardEuler
-
-TRC File: 151, start time: 0.000, stop time: 2.500, frame rate: 60.00
-MOT File: 1501, start time: 0.000, stop time: 2.500, frame rate: 600.00
-Model markers: 39	Assigned experimental markers: 31
-Model marker    Exp. marker     Attachment      Weight
-Sternum         Sternum         torso           1.0
-R_Acromium      R.Acromium      torso           0.5
-L_Acromium      L.Acromium      torso           0.5
-Top_Head        Top.Head        torso           0.1
-R_ASIS          R.ASIS          pelvis          10.0
-L_ASIS          L.ASIS          pelvis          10.0
-V_Sacral        V.Sacral        pelvis          10.0
-R_Thigh_Upper   R.Thigh.Upper   femur_r         1.0
-R_Thigh_Front   R.Thigh.Front   femur_r         1.0
-R_Thigh_Rear    R.Thigh.Rear    femur_r         1.0
-R_Knee_Lat      No corresponding experimental marker detected.
-R_Knee_Med      No corresponding experimental marker detected.
-R_Shank_Upper   R.Shank.Upper   tibia_r         1.0
-R_Shank_Front   R.Shank.Front   tibia_r         1.0
-R_Shank_Rear    R.Shank.Rear    tibia_r         1.0
-R_Ankle_Lat     No corresponding experimental marker detected.
-R_Ankle_Med     No corresponding experimental marker detected.
-R_Heel          R.Heel          calcn_r         10.0
-R_Midfoot_Sup   R.Midfoot.Sup   calcn_r         1.0
-R_Midfoot_Lat   R.Midfoot.Lat   calcn_r         1.0
-R_Toe_Lat       R.Toe.Lat       toes_r          1.0
-R_Toe_Med       R.Toe.Med       toes_r          1.0
-R_Toe_Tip       R.Toe.Tip       toes_r          10.0
-L_Thigh_Upper   L.Thigh.Upper   femur_l         1.0
-L_Thigh_Front   L.Thigh.Front   femur_l         1.0
-L_Thigh_Rear    L.Thigh.Rear    femur_l         1.0
-L_Knee_Lat      No corresponding experimental marker detected.
-L_Knee_Med      No corresponding experimental marker detected.
-L_Shank_Upper   L.Shank.Upper   tibia_l         1.0
-L_Shank_Front   L.Shank.Front   tibia_l         1.0
-L_Shank_Rear    L.Shank.Rear    tibia_l         1.0
-L_Ankle_Lat     No corresponding experimental marker detected.
-L_Ankle_Med     No corresponding experimental marker detected.
-L_Heel          L.Heel          calcn_l         10.0
-L_Midfoot_Sup   L.Midfoot.Sup   calcn_l         1.0
-L_Midfoot_Lat   L.Midfoot.Lat   calcn_l         1.0
-L_Toe_Lat       L.Toe.Lat       toes_l          1.0
-L_Toe_Med       L.Toe.Med       toes_l          1.0
-L_Toe_Tip       L.Toe.Tip       toes_l          10.0
-
 %%CONTACT%%
 %%------------------------------------------------------------%%
 

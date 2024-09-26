@@ -82,7 +82,9 @@ import maspack.geometry.PolygonalMesh;
 import maspack.geometry.Vertex3d;
 import maspack.interpolation.Interpolation;
 import maspack.matrix.AxisAlignedRotation;
+import maspack.matrix.AxisAngle;
 import maspack.matrix.Point3d;
+import maspack.matrix.Quaternion;
 import maspack.matrix.RigidTransform3d;
 import maspack.matrix.Vector3d;
 import maspack.matrix.VectorNd;
@@ -133,58 +135,6 @@ public class OpenSimTest extends RootModel {
    double myScale;
 
    // ----------------------------Nested classes--------------------------------
-
-   public class VelocityFunction implements DataFunction, Clonable {
-      // Frame whoes velocities are being calculated
-      TargetFrame myFrame;
-      // PrintWriter to write computed wrenches to a file
-      PrintWriter writer;
-      // Name of the file, where computed wrenches are written to
-      String msgName;
-      // Path to the file, where computed wrenches are written to
-      String msgPath;
-
-      public VelocityFunction (TargetFrame target) {
-         myFrame = target;
-         // initialize writer
-         this.msgName = myName + "/Output/" + myName + "_message_file.txt";
-         this.msgPath =
-            ArtisynthPath
-               .getSrcRelativePath (OpenSimTest.class, msgName).toString ();
-         try {
-            writer = new PrintWriter (new FileWriter (msgPath, true));
-         }
-         catch (IOException e) {
-            e.printStackTrace ();
-         }
-      }
-
-      public Object clone () throws CloneNotSupportedException {
-         return super.clone ();
-      }
-
-      public void eval (VectorNd vec, double t, double trel) {
-         Twist vel = null;
-         // get position and orientation
-         Vector3d pos = new Vector3d ();
-         vec.getSubVector (new int[] { 0, 1, 2 }, pos);
-         Vector3d orient = new Vector3d ();
-         vec.getSubVector (new int[] { 3, 4, 5, 6 }, orient);
-         
-         writeToFile(vel);
-      }
-      
-      private void writeToFile (Twist vel) {
-         StringBuilder message = new StringBuilder ();
-         message
-            .append ("\nCOMPUTED VELOCITY FOR: ")
-            .append (myFrame.getName ().toUpperCase ()).append ("\n");
-         message.append (vel.toString ("%.3f")).append ("\n");
-         writer.print (message);
-         writer.flush ();
-      }
-   }
-   
    public class MomentArmFunction implements DataFunction, Clonable {
       // Frame used for moment arm calculation
       Frame myFrame;
@@ -644,7 +594,7 @@ public class OpenSimTest extends RootModel {
          try {
             createFrameTargetInputProbe (target, motion, "orientation");
             createFrameTargetInputProbe (target, motion, "position");
-            createFrameTargetInputProbe (target, motion, "velocity");
+            //createFrameTargetInputProbe (target, motion, "velocity");
          }
          catch (IOException e) {
             e.printStackTrace ();
@@ -748,7 +698,7 @@ public class OpenSimTest extends RootModel {
             Double weight = map.getMarkerWeight (mkr.getName ());
             TargetPoint target = controller.addPointTarget (mkr, weight);
             createPointTargetInputProbe(target, "position", motion, map);
-            createPointTargetInputProbe(target, "velocity", motion, map);
+            //createPointTargetInputProbe(target, "velocity", motion, map);
          }
       });
    }
@@ -793,7 +743,7 @@ public class OpenSimTest extends RootModel {
       if (mech != null) {
          for (int i = 0; i < exs.length; i++) {
             mech.addForceEffector (exs[i]);
-            ctrl.addExciter (1.0, exs[i]);
+            ctrl.addExciter (weights[i], exs[i]);
          }
       }
       return exs;
@@ -894,16 +844,6 @@ public class OpenSimTest extends RootModel {
       grf.setActive (true);
       addInputProbe (grf);
    }
-   
-   /**
-    * 
-    * @param target
-    * @param motion
-    */
-   private void createFrameTargetVelocityProbes (
-      TargetFrame target, MarkerMotionData motion) {
-      
-   }
 
    /**
     * Generates a {@link NumericInputProbe} of the specified property based on
@@ -922,52 +862,80 @@ public class OpenSimTest extends RootModel {
    private void createFrameTargetInputProbe (
       Frame frame, MarkerMotionData motion, String prop)
       throws IOException {
-      
-      
-      
-      String file =
-         ArtisynthPath
-            .getSrcRelativePath (
-               this,
-               myName + "/Input/" + frame.getName () + " " + prop + ".txt");
-      
-      
-      /*if (prop == "velocity") {
-      NumericControlProbe vel = new NumericControlProbe ();
-      vel.setModel (myMech);
-      vel.setName (target.getName () + "_velocity");
-      double duration =
-         motion.getFrameTime (motion.numFrames () - 1)
-         - motion.getFrameTime (0);
-      vel.setStartStopTimes (0.0, duration);
-      vel.setInterpolationOrder (Interpolation.Order.Cubic);
-      vel.setDataFunction (new VelocityFunction (target));
-      vel.setVsize (7);
-
-      for (int i = 0; i < motion.numFrames (); i++) {
-         VectorNd vector = new VectorNd (7);
-         double time = motion.getFrameTime (i);
-         vector.add (0, target.getPosition ().x);
-         vector.add (1, target.getPosition ().y);
-         vector.add (2, target.getPosition ().z);
-         vector.add (3, target.getOrientation ().axis.x);
-         vector.add (4, target.getOrientation ().axis.y);
-         vector.add (5, target.getOrientation ().axis.z);
-         vector.add (6, target.getOrientation ().angle);
-         vel.addData (time, vector);
+      if (prop == "velocity") {
+         double duration =
+            motion.getFrameTime (motion.numFrames () - 1)
+            - motion.getFrameTime (0);
+         NumericInputProbe velocity =
+            new NumericInputProbe (frame, prop, 0.0, duration);
+         velocity.setName (frame.getName () + " velocity");
+         velocity.setInterpolationOrder (Interpolation.Order.Cubic);
+         // collect positions and orientations
+         String path =
+            myName + "/Input/" + frame.getName () + " " + "position" + ".txt";
+         String file = ArtisynthPath.getSrcRelativePath (this, path);
+         NumericInputProbe pos =
+            new NumericInputProbe (frame, "position", file);
+         path =
+            myName + "/Input/" + frame.getName () + " " + "orientation"
+            + ".txt";
+         file = ArtisynthPath.getSrcRelativePath (this, path);
+         NumericInputProbe orient =
+            new NumericInputProbe (frame, "orientation", file);
+         // pass positions and orientations to probe
+         for (int i = 0; i < motion.numFrames () - 1; i++) {
+            double t0 = motion.getFrameTime (i);
+            double t1 = motion.getFrameTime (i + 1);
+            double deltaTime = t1 - t0;
+            // calculate translational velocity v
+            VectorNd post0 = pos.getData (t0);
+            VectorNd post1 = pos.getData (t1);
+            VectorNd deltaPos = new VectorNd ();
+            deltaPos.sub (post1, post0);
+            VectorNd v = new VectorNd ();
+            v.scale (1 / deltaTime, deltaPos);
+            // calculate rotational velocity w
+            VectorNd buf = orient.getData (t0);
+            Quaternion qt0 =
+               new Quaternion (
+                  new AxisAngle (
+                     buf.get (0), buf.get (1), buf.get (2), buf.get (3)));
+            buf = orient.getData (t1);
+            Quaternion qt1 =
+               new Quaternion (
+                  new AxisAngle (
+                     buf.get (0), buf.get (1), buf.get (2), buf.get (3)));
+            Quaternion deltaQ = new Quaternion ();
+            deltaQ.mulInverseRight (qt1, qt0);
+            double deltaAngle = qt0.rotationAngle(qt1);
+            VectorNd deltaAxis =
+               new VectorNd (deltaQ.get (1), deltaQ.get (2), deltaQ.get (3));
+            deltaAxis.scale (1 / Math.sin (deltaAngle / 2));
+            VectorNd w = new VectorNd();
+            w.scale (deltaAngle / deltaTime, deltaAxis);
+            VectorNd vel = new VectorNd(6);
+            vel.set (0, v.get (0));
+            vel.set (1, v.get (1));
+            vel.set (2, v.get (2));
+            vel.set (3, w.get (0));
+            vel.set (4, w.get (1));
+            vel.set (5, w.get (2));
+            velocity.addData (t0, vel);
+         }
+         velocity.setActive (true);
+         addInputProbe (velocity);
       }
-      vel.setActive (true);
-      addInputProbe (vel);
-      }*/
-      
-      
-      
-      
-      
-      NumericInputProbe probe = new NumericInputProbe (frame, prop, file);
-      probe.setName (frame.getName () + " " + prop);
-      probe.setInterpolationOrder (Interpolation.Order.Cubic);
-      addInputProbe (probe);
+      else {
+         String file =
+            ArtisynthPath
+               .getSrcRelativePath (
+                  this,
+                  myName + "/Input/" + frame.getName () + " " + prop + ".txt");
+         NumericInputProbe probe = new NumericInputProbe (frame, prop, file);
+         probe.setName (frame.getName () + " " + prop);
+         probe.setInterpolationOrder (Interpolation.Order.Cubic);
+         addInputProbe (probe);
+      }
    }
    
    /**
@@ -990,9 +958,10 @@ public class OpenSimTest extends RootModel {
       double stop = motion.getFrameTime (motion.numFrames () - 1);
       NumericInputProbe probe =
          new NumericInputProbe (target, prop, start, stop); 
-      probe.setName (target.getName () + "_" + prop);
+      probe.setName (target.getName () + " " + prop);
       probe.setInterpolationOrder (Interpolation.Order.Cubic);
       String mLabel = target.getSourceComp ().getName ();
+      
       if (prop == "position") {
          for (int i = 0; i < motion.numFrames (); i++) {
             VectorNd pos = new VectorNd ();
@@ -1514,6 +1483,7 @@ public class OpenSimTest extends RootModel {
       myMotion = readTRCFile (name, scale, myMap);
       myForces = readForceFile (name);
       myCoords = readCoordsFile (name);
+      
       // Inverse control
       TrackingController controller =
          addControllerAndProps (myMotion, myMap, name);
@@ -1521,6 +1491,7 @@ public class OpenSimTest extends RootModel {
       addPointTargetsAndProbes (controller, myMap, myMotion);
       addFrameTargetsAndProbes (controller, myMotion);
       addForceInputProbes (myForces);
+      
       // Parametric control
       //addCoordsInputProbes (myCoords);  
       // Add output probes

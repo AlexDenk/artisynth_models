@@ -594,7 +594,7 @@ public class OpenSimTest extends RootModel {
          try {
             createFrameTargetInputProbe (target, motion, "orientation");
             createFrameTargetInputProbe (target, motion, "position");
-            //createFrameTargetInputProbe (target, motion, "velocity");
+            //createFrameTargetInputProbe (b, motion, "velocity");
          }
          catch (IOException e) {
             e.printStackTrace ();
@@ -698,7 +698,7 @@ public class OpenSimTest extends RootModel {
             Double weight = map.getMarkerWeight (mkr.getName ());
             TargetPoint target = controller.addPointTarget (mkr, weight);
             createPointTargetInputProbe(target, "position", motion, map);
-            //createPointTargetInputProbe(target, "velocity", motion, map);
+            createPointTargetInputProbe(target, "velocity", motion, map);
          }
       });
    }
@@ -906,13 +906,18 @@ public class OpenSimTest extends RootModel {
                   new AxisAngle (
                      buf.get (0), buf.get (1), buf.get (2), buf.get (3)));
             Quaternion deltaQ = new Quaternion ();
-            deltaQ.mulInverseRight (qt1, qt0);
-            double deltaAngle = qt0.rotationAngle(qt1);
-            VectorNd deltaAxis =
-               new VectorNd (deltaQ.get (1), deltaQ.get (2), deltaQ.get (3));
-            deltaAxis.scale (1 / Math.sin (deltaAngle / 2));
-            VectorNd w = new VectorNd();
-            w.scale (deltaAngle / deltaTime, deltaAxis);
+            deltaQ.mulInverseLeft (qt0, qt1);  
+            //double deltaAngle = qt0.rotationAngle(qt1);
+            AxisAngle deltaAxis = new AxisAngle();
+            deltaQ.getAxisAngle (deltaAxis);
+            
+            
+            //VectorNd deltaAxis =
+            //   new VectorNd (deltaQ.get (1), deltaQ.get (2), deltaQ.get (3));
+            //deltaAxis.scale (1 / Math.sin (deltaAngle / 2));
+            
+            Vector3d w = new Vector3d();
+            w.scale (deltaAxis.angle/ deltaTime, deltaAxis.axis);
             VectorNd vel = new VectorNd(6);
             vel.set (0, v.get (0));
             vel.set (1, v.get (1));

@@ -594,7 +594,7 @@ public class OpenSimTest extends RootModel {
          try {
             createFrameTargetInputProbe (target, motion, "orientation");
             createFrameTargetInputProbe (target, motion, "position");
-            //createFrameTargetInputProbe (b, motion, "velocity");
+            createFrameTargetInputProbe (target, motion, "velocity");
          }
          catch (IOException e) {
             e.printStackTrace ();
@@ -907,17 +907,11 @@ public class OpenSimTest extends RootModel {
                      buf.get (0), buf.get (1), buf.get (2), buf.get (3)));
             Quaternion deltaQ = new Quaternion ();
             deltaQ.mulInverseLeft (qt0, qt1);  
-            //double deltaAngle = qt0.rotationAngle(qt1);
             AxisAngle deltaAxis = new AxisAngle();
-            deltaQ.getAxisAngle (deltaAxis);
-            
-            
-            //VectorNd deltaAxis =
-            //   new VectorNd (deltaQ.get (1), deltaQ.get (2), deltaQ.get (3));
-            //deltaAxis.scale (1 / Math.sin (deltaAngle / 2));
-            
+            deltaQ.getAxisAngle (deltaAxis);         
             Vector3d w = new Vector3d();
             w.scale (deltaAxis.angle/ deltaTime, deltaAxis.axis);
+            // create and pass twist
             VectorNd vel = new VectorNd(6);
             vel.set (0, v.get (0));
             vel.set (1, v.get (1));

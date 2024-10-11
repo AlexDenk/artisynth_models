@@ -1028,7 +1028,7 @@ public class OpenSimTest extends RootModel {
     */
    private void initializeMeshes (String name, double scale) throws IOException {
       importAndSetupFemur(name, scale);
-      importAndSetupShank(name, scale);
+      //importAndSetupShank(name, scale);
 
       // not used as long as the Ansys reader is not called
       // public String inputNodes = PathFinder.

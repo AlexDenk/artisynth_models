@@ -3,7 +3,10 @@ package artisynth.models.diss;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import maspack.matrix.*;
@@ -22,6 +25,8 @@ public class MOTReader {
    protected CoordinateData myCoords = new CoordinateData ();
    protected boolean coordsInDegrees;
    protected boolean forcesInDegrees;
+   protected String myp1ContactSide;
+   protected int myp1ContactPlate;
 
    // ------------------------------Constructors-------------------------------
    public MOTReader () {
@@ -31,9 +36,19 @@ public class MOTReader {
       myIstream = is;
    }
 
+   public MOTReader (InputStream is, String side, int num) {
+      myIstream = is;
+      myp1ContactSide = side.toLowerCase ();
+      myp1ContactPlate = num;
+   }
+
+   public MOTReader (File file, String side, int num) throws IOException {
+      this (new FileInputStream (file), side, num);
+      myFile = file;
+   }
+
    public MOTReader (File file) throws IOException {
       this (new FileInputStream (file));
-      myFile = file;
    }
 
    // --------------------------Static Methods---------------------------------
@@ -106,7 +121,6 @@ public class MOTReader {
          }
       }
       while (!line.contains ("endheader"));
-
       // Read labels
       boolean forcefile = false;
       if ((line = reader.readLine ()) != null) {
@@ -207,59 +221,28 @@ public class MOTReader {
    }
 
    private ArrayList<String> readForceLabels (String[] tokens) {
+      Set<String> labels = new LinkedHashSet<String> ();
+      // Assign plates 1 and 2 to left or right side each
+      String p1 =
+         (myp1ContactSide.equals ("right") && myp1ContactPlate == 1)
+         || (myp1ContactSide.equals ("left") && myp1ContactPlate == 2) ? "Right"
+            : "Left";
+      String p2 = p1.equals ("Right") ? "Left" : "Right";
       // Combine each column header triple (x,y,z) to a single
       // label, skip time entry so start at 1.
-      ArrayList<String> labels = new ArrayList<String> ();
       for (int i = 1; i < tokens.length; i++) {
-         // check if token belongs to the left foot
-         if (tokens[i].contains ("2")) {
-            // check if token is a force vector
-            if (tokens[i].contains ("v")) {
-               // check whether label is already contained
-               if (labels.contains ("Left GRF")) {
-                  continue;
-               }
-               labels.add ("Left GRF");
-            }
-            // check if token is a point
-            else if (tokens[i].contains ("p")) {
-               if (labels.contains ("Left COP")) {
-                  continue;
-               }
-               labels.add ("Left COP");
-            }
-            // check if token is a torque
-            else if (tokens[i].contains ("torque")
-            || tokens[i].contains ("moment")) {
-               if (labels.contains ("Left GRM")) {
-                  continue;
-               }
-               labels.add ("Left GRM");
-            }
+         String plate = tokens[i].contains ("1") ? p1 : p2;
+         if (tokens[i].contains ("v")) {
+            labels.add (String.format ("%s GRF", plate));
          }
-         else {
-            // perform similar checks for the right foot
-            if (tokens[i].contains ("v")) {
-               if (labels.contains ("Right GRF")) {
-                  continue;
-               }
-               labels.add ("Right GRF");
-            }
-            else if (tokens[i].contains ("p")) {
-               if (labels.contains ("Right COP")) {
-                  continue;
-               }
-               labels.add ("Right COP");
-            }
-            else if (tokens[i].contains ("torque")
-            || tokens[i].contains ("moment")) {
-               if (labels.contains ("Right GRM")) {
-                  continue;
-               }
-               labels.add ("Right GRM");
-            }
+         else if (tokens[i].contains ("p")) {
+            labels.add (String.format ("%s COP", plate));
+         }
+         else if (tokens[i].contains ("torque")
+         || tokens[i].contains ("moment")) {
+            labels.add (String.format ("%s GRM", plate));
          }
       }
-      return labels;
+      return new ArrayList<String> (labels);
    }
 }

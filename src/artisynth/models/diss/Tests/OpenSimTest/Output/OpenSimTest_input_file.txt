@@ -32605,7 +32605,7 @@ Number of muscles: 92
 Name: glut_med1_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 819.0
-Rest length: 0.121
+Rest length: 0.119
 Opt fiber length: 0.054
 Tendon slack length: 0.078
 Number of points: 2
@@ -32617,7 +32617,7 @@ Number of muscle wrappings: 0
 Name: glut_med2_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 573.0
-Rest length: 0.131
+Rest length: 0.130
 Opt fiber length: 0.085
 Tendon slack length: 0.053
 Number of points: 2
@@ -32629,7 +32629,7 @@ Number of muscle wrappings: 0
 Name: glut_med3_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 653.0
-Rest length: 0.110
+Rest length: 0.109
 Opt fiber length: 0.065
 Tendon slack length: 0.053
 Number of points: 2
@@ -32641,7 +32641,7 @@ Number of muscle wrappings: 0
 Name: glut_min1_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 270.0
-Rest length: 0.083
+Rest length: 0.085
 Opt fiber length: 0.068
 Tendon slack length: 0.016
 Number of points: 2
@@ -32653,7 +32653,7 @@ Number of muscle wrappings: 0
 Name: glut_min2_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 285.0
-Rest length: 0.083
+Rest length: 0.085
 Opt fiber length: 0.056
 Tendon slack length: 0.026
 Number of points: 2
@@ -32665,7 +32665,7 @@ Number of muscle wrappings: 0
 Name: glut_min3_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 323.0
-Rest length: 0.086
+Rest length: 0.088
 Opt fiber length: 0.038
 Tendon slack length: 0.051
 Number of points: 2
@@ -32677,7 +32677,7 @@ Number of muscle wrappings: 0
 Name: semimem_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1288.0
-Rest length: 0.415
+Rest length: 0.393
 Opt fiber length: 0.080
 Tendon slack length: 0.359
 Number of points: 3
@@ -32690,7 +32690,7 @@ Number of muscle wrappings: 0
 Name: semiten_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 410.0
-Rest length: 0.463
+Rest length: 0.438
 Opt fiber length: 0.201
 Tendon slack length: 0.256
 Number of points: 5
@@ -32705,7 +32705,7 @@ Number of muscle wrappings: 0
 Name: bifemlh_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 896.0
-Rest length: 0.420
+Rest length: 0.396
 Opt fiber length: 0.109
 Tendon slack length: 0.326
 Number of points: 3
@@ -32718,7 +32718,7 @@ Number of muscle wrappings: 0
 Name: bifemsh_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 804.0
-Rest length: 0.246
+Rest length: 0.242
 Opt fiber length: 0.173
 Tendon slack length: 0.089
 Number of points: 3
@@ -32731,7 +32731,7 @@ Number of muscle wrappings: 0
 Name: sar_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 156.0
-Rest length: 0.569
+Rest length: 0.584
 Opt fiber length: 0.520
 Tendon slack length: 0.100
 Number of points: 5
@@ -32746,7 +32746,7 @@ Number of muscle wrappings: 0
 Name: add_long_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 627.0
-Rest length: 0.216
+Rest length: 0.224
 Opt fiber length: 0.138
 Tendon slack length: 0.110
 Number of points: 2
@@ -32758,7 +32758,7 @@ Number of muscle wrappings: 0
 Name: add_brev_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 429.0
-Rest length: 0.135
+Rest length: 0.134
 Opt fiber length: 0.133
 Tendon slack length: 0.020
 Number of points: 2
@@ -32770,7 +32770,7 @@ Number of muscle wrappings: 0
 Name: add_mag1_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 381.0
-Rest length: 0.115
+Rest length: 0.112
 Opt fiber length: 0.087
 Tendon slack length: 0.060
 Number of points: 2
@@ -32782,7 +32782,7 @@ Number of muscle wrappings: 0
 Name: add_mag2_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 343.0
-Rest length: 0.192
+Rest length: 0.184
 Opt fiber length: 0.121
 Tendon slack length: 0.120
 Number of points: 2
@@ -32794,7 +32794,7 @@ Number of muscle wrappings: 0
 Name: add_mag3_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 488.0
-Rest length: 0.339
+Rest length: 0.322
 Opt fiber length: 0.131
 Tendon slack length: 0.249
 Number of points: 2
@@ -32806,7 +32806,7 @@ Number of muscle wrappings: 0
 Name: tfl_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 233.0
-Rest length: 0.536
+Rest length: 0.552
 Opt fiber length: 0.095
 Tendon slack length: 0.425
 Number of points: 4
@@ -32820,7 +32820,7 @@ Number of muscle wrappings: 0
 Name: pect_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 266.0
-Rest length: 0.104
+Rest length: 0.109
 Opt fiber length: 0.100
 Tendon slack length: 0.033
 Number of points: 2
@@ -32832,7 +32832,7 @@ Number of muscle wrappings: 0
 Name: grac_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 162.0
-Rest length: 0.440
+Rest length: 0.437
 Opt fiber length: 0.352
 Tendon slack length: 0.126
 Number of points: 4
@@ -32846,7 +32846,7 @@ Number of muscle wrappings: 0
 Name: glut_max1_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 573.0
-Rest length: 0.200
+Rest length: 0.189
 Opt fiber length: 0.142
 Tendon slack length: 0.125
 Number of points: 4
@@ -32860,7 +32860,7 @@ Number of muscle wrappings: 0
 Name: glut_max2_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 819.0
-Rest length: 0.210
+Rest length: 0.193
 Opt fiber length: 0.147
 Tendon slack length: 0.127
 Number of points: 4
@@ -32874,7 +32874,7 @@ Number of muscle wrappings: 0
 Name: glut_max3_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 552.0
-Rest length: 0.235
+Rest length: 0.207
 Opt fiber length: 0.144
 Tendon slack length: 0.145
 Number of points: 4
@@ -32888,7 +32888,7 @@ Number of muscle wrappings: 0
 Name: iliacus_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1073.0
-Rest length: 0.207
+Rest length: 0.220
 Opt fiber length: 0.100
 Tendon slack length: 0.100
 Number of points: 5
@@ -32903,7 +32903,7 @@ Number of muscle wrappings: 0
 Name: psoas_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1113.0
-Rest length: 0.261
+Rest length: 0.274
 Opt fiber length: 0.100
 Tendon slack length: 0.160
 Number of points: 5
@@ -32918,7 +32918,7 @@ Number of muscle wrappings: 0
 Name: quad_fem_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 381.0
-Rest length: 0.070
+Rest length: 0.073
 Opt fiber length: 0.054
 Tendon slack length: 0.024
 Number of points: 2
@@ -32930,7 +32930,7 @@ Number of muscle wrappings: 0
 Name: gem_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 164.0
-Rest length: 0.064
+Rest length: 0.067
 Opt fiber length: 0.024
 Tendon slack length: 0.039
 Number of points: 2
@@ -32942,7 +32942,7 @@ Number of muscle wrappings: 0
 Name: peri_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 444.0
-Rest length: 0.136
+Rest length: 0.139
 Opt fiber length: 0.026
 Tendon slack length: 0.115
 Number of points: 3
@@ -32955,7 +32955,7 @@ Number of muscle wrappings: 0
 Name: rect_fem_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1169.0
-Rest length: 0.475
+Rest length: 0.484
 Opt fiber length: 0.114
 Tendon slack length: 0.310
 Number of points: 3
@@ -32968,7 +32968,7 @@ Number of muscle wrappings: 0
 Name: vas_med_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1294.0
-Rest length: 0.281
+Rest length: 0.274
 Opt fiber length: 0.089
 Tendon slack length: 0.126
 Number of points: 5
@@ -32983,7 +32983,7 @@ Number of muscle wrappings: 0
 Name: vas_int_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1365.0
-Rest length: 0.249
+Rest length: 0.244
 Opt fiber length: 0.087
 Tendon slack length: 0.136
 Number of points: 4
@@ -32997,7 +32997,7 @@ Number of muscle wrappings: 0
 Name: vas_lat_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1871.0
-Rest length: 0.304
+Rest length: 0.297
 Opt fiber length: 0.084
 Tendon slack length: 0.157
 Number of points: 5
@@ -33012,7 +33012,7 @@ Number of muscle wrappings: 0
 Name: med_gas_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1558.0
-Rest length: 0.451
+Rest length: 0.458
 Opt fiber length: 0.060
 Tendon slack length: 0.390
 Number of points: 3
@@ -33025,7 +33025,7 @@ Number of muscle wrappings: 0
 Name: lat_gas_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 683.0
-Rest length: 0.447
+Rest length: 0.454
 Opt fiber length: 0.064
 Tendon slack length: 0.380
 Number of points: 3
@@ -33038,7 +33038,7 @@ Number of muscle wrappings: 0
 Name: soleus_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 3549.0
-Rest length: 0.291
+Rest length: 0.302
 Opt fiber length: 0.050
 Tendon slack length: 0.250
 Number of points: 2
@@ -33050,7 +33050,7 @@ Number of muscle wrappings: 0
 Name: tib_post_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 1588.0
-Rest length: 0.345
+Rest length: 0.348
 Opt fiber length: 0.031
 Tendon slack length: 0.310
 Number of points: 4
@@ -33064,7 +33064,7 @@ Number of muscle wrappings: 0
 Name: flex_dig_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 310.0
-Rest length: 0.433
+Rest length: 0.436
 Opt fiber length: 0.034
 Tendon slack length: 0.400
 Number of points: 8
@@ -33082,7 +33082,7 @@ Number of muscle wrappings: 0
 Name: flex_hal_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 322.0
-Rest length: 0.420
+Rest length: 0.424
 Opt fiber length: 0.043
 Tendon slack length: 0.380
 Number of points: 7
@@ -33099,7 +33099,7 @@ Number of muscle wrappings: 0
 Name: tib_ant_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 905.0
-Rest length: 0.304
+Rest length: 0.293
 Opt fiber length: 0.098
 Tendon slack length: 0.223
 Number of points: 3
@@ -33112,7 +33112,7 @@ Number of muscle wrappings: 0
 Name: per_brev_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 435.0
-Rest length: 0.211
+Rest length: 0.212
 Opt fiber length: 0.050
 Tendon slack length: 0.161
 Number of points: 5
@@ -33127,7 +33127,7 @@ Number of muscle wrappings: 0
 Name: per_long_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 943.0
-Rest length: 0.396
+Rest length: 0.398
 Opt fiber length: 0.049
 Tendon slack length: 0.345
 Number of points: 7
@@ -33144,7 +33144,7 @@ Number of muscle wrappings: 0
 Name: per_tert_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 180.0
-Rest length: 0.178
+Rest length: 0.172
 Opt fiber length: 0.079
 Tendon slack length: 0.100
 Number of points: 3
@@ -33157,7 +33157,7 @@ Number of muscle wrappings: 0
 Name: ext_dig_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 512.0
-Rest length: 0.442
+Rest length: 0.432
 Opt fiber length: 0.102
 Tendon slack length: 0.345
 Number of points: 6
@@ -33173,7 +33173,7 @@ Number of muscle wrappings: 0
 Name: ext_hal_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 162.0
-Rest length: 0.410
+Rest length: 0.400
 Opt fiber length: 0.111
 Tendon slack length: 0.305
 Number of points: 7
@@ -33190,7 +33190,7 @@ Number of muscle wrappings: 0
 Name: glut_med1_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 819.0
-Rest length: 0.121
+Rest length: 0.123
 Opt fiber length: 0.054
 Tendon slack length: 0.078
 Number of points: 2
@@ -33202,7 +33202,7 @@ Number of muscle wrappings: 0
 Name: glut_med2_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 573.0
-Rest length: 0.131
+Rest length: 0.133
 Opt fiber length: 0.085
 Tendon slack length: 0.053
 Number of points: 2
@@ -33214,7 +33214,7 @@ Number of muscle wrappings: 0
 Name: glut_med3_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 653.0
-Rest length: 0.110
+Rest length: 0.111
 Opt fiber length: 0.065
 Tendon slack length: 0.053
 Number of points: 2
@@ -33226,7 +33226,7 @@ Number of muscle wrappings: 0
 Name: glut_min1_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 270.0
-Rest length: 0.083
+Rest length: 0.081
 Opt fiber length: 0.068
 Tendon slack length: 0.016
 Number of points: 2
@@ -33238,7 +33238,7 @@ Number of muscle wrappings: 0
 Name: glut_min2_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 285.0
-Rest length: 0.083
+Rest length: 0.081
 Opt fiber length: 0.056
 Tendon slack length: 0.026
 Number of points: 2
@@ -33250,7 +33250,7 @@ Number of muscle wrappings: 0
 Name: glut_min3_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 323.0
-Rest length: 0.086
+Rest length: 0.085
 Opt fiber length: 0.038
 Tendon slack length: 0.051
 Number of points: 2
@@ -33262,7 +33262,7 @@ Number of muscle wrappings: 0
 Name: semimem_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1288.0
-Rest length: 0.415
+Rest length: 0.431
 Opt fiber length: 0.080
 Tendon slack length: 0.359
 Number of points: 3
@@ -33275,7 +33275,7 @@ Number of muscle wrappings: 0
 Name: semiten_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 410.0
-Rest length: 0.463
+Rest length: 0.483
 Opt fiber length: 0.201
 Tendon slack length: 0.256
 Number of points: 5
@@ -33290,7 +33290,7 @@ Number of muscle wrappings: 0
 Name: bifemlh_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 896.0
-Rest length: 0.420
+Rest length: 0.439
 Opt fiber length: 0.109
 Tendon slack length: 0.326
 Number of points: 3
@@ -33303,7 +33303,7 @@ Number of muscle wrappings: 0
 Name: bifemsh_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 804.0
-Rest length: 0.246
+Rest length: 0.244
 Opt fiber length: 0.173
 Tendon slack length: 0.089
 Number of points: 3
@@ -33316,7 +33316,7 @@ Number of muscle wrappings: 0
 Name: sar_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 156.0
-Rest length: 0.569
+Rest length: 0.547
 Opt fiber length: 0.520
 Tendon slack length: 0.100
 Number of points: 5
@@ -33331,7 +33331,7 @@ Number of muscle wrappings: 0
 Name: add_long_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 627.0
-Rest length: 0.216
+Rest length: 0.214
 Opt fiber length: 0.138
 Tendon slack length: 0.110
 Number of points: 2
@@ -33343,7 +33343,7 @@ Number of muscle wrappings: 0
 Name: add_brev_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 429.0
-Rest length: 0.135
+Rest length: 0.141
 Opt fiber length: 0.133
 Tendon slack length: 0.020
 Number of points: 2
@@ -33355,7 +33355,7 @@ Number of muscle wrappings: 0
 Name: add_mag1_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 381.0
-Rest length: 0.115
+Rest length: 0.127
 Opt fiber length: 0.087
 Tendon slack length: 0.060
 Number of points: 2
@@ -33367,7 +33367,7 @@ Number of muscle wrappings: 0
 Name: add_mag2_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 343.0
-Rest length: 0.192
+Rest length: 0.208
 Opt fiber length: 0.121
 Tendon slack length: 0.120
 Number of points: 2
@@ -33379,7 +33379,7 @@ Number of muscle wrappings: 0
 Name: add_mag3_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 488.0
-Rest length: 0.339
+Rest length: 0.361
 Opt fiber length: 0.131
 Tendon slack length: 0.249
 Number of points: 2
@@ -33391,7 +33391,7 @@ Number of muscle wrappings: 0
 Name: tfl_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 233.0
-Rest length: 0.536
+Rest length: 0.519
 Opt fiber length: 0.095
 Tendon slack length: 0.425
 Number of points: 4
@@ -33405,7 +33405,7 @@ Number of muscle wrappings: 0
 Name: pect_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 266.0
-Rest length: 0.104
+Rest length: 0.101
 Opt fiber length: 0.100
 Tendon slack length: 0.033
 Number of points: 2
@@ -33417,7 +33417,7 @@ Number of muscle wrappings: 0
 Name: grac_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 162.0
-Rest length: 0.440
+Rest length: 0.449
 Opt fiber length: 0.352
 Tendon slack length: 0.126
 Number of points: 4
@@ -33431,7 +33431,7 @@ Number of muscle wrappings: 0
 Name: glut_max1_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 573.0
-Rest length: 0.200
+Rest length: 0.210
 Opt fiber length: 0.142
 Tendon slack length: 0.125
 Number of points: 4
@@ -33445,7 +33445,7 @@ Number of muscle wrappings: 0
 Name: glut_max2_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 819.0
-Rest length: 0.210
+Rest length: 0.223
 Opt fiber length: 0.147
 Tendon slack length: 0.127
 Number of points: 4
@@ -33459,7 +33459,7 @@ Number of muscle wrappings: 0
 Name: glut_max3_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 552.0
-Rest length: 0.235
+Rest length: 0.262
 Opt fiber length: 0.144
 Tendon slack length: 0.145
 Number of points: 4
@@ -33473,7 +33473,7 @@ Number of muscle wrappings: 0
 Name: iliacus_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1073.0
-Rest length: 0.207
+Rest length: 0.195
 Opt fiber length: 0.100
 Tendon slack length: 0.100
 Number of points: 5
@@ -33488,7 +33488,7 @@ Number of muscle wrappings: 0
 Name: psoas_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1113.0
-Rest length: 0.261
+Rest length: 0.249
 Opt fiber length: 0.100
 Tendon slack length: 0.160
 Number of points: 5
@@ -33503,7 +33503,7 @@ Number of muscle wrappings: 0
 Name: quad_fem_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 381.0
-Rest length: 0.070
+Rest length: 0.071
 Opt fiber length: 0.054
 Tendon slack length: 0.024
 Number of points: 2
@@ -33515,7 +33515,7 @@ Number of muscle wrappings: 0
 Name: gem_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 164.0
-Rest length: 0.064
+Rest length: 0.062
 Opt fiber length: 0.024
 Tendon slack length: 0.039
 Number of points: 2
@@ -33527,7 +33527,7 @@ Number of muscle wrappings: 0
 Name: peri_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 444.0
-Rest length: 0.136
+Rest length: 0.134
 Opt fiber length: 0.026
 Tendon slack length: 0.115
 Number of points: 3
@@ -33540,7 +33540,7 @@ Number of muscle wrappings: 0
 Name: rect_fem_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1169.0
-Rest length: 0.475
+Rest length: 0.456
 Opt fiber length: 0.114
 Tendon slack length: 0.310
 Number of points: 3
@@ -33553,7 +33553,7 @@ Number of muscle wrappings: 0
 Name: vas_med_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1294.0
-Rest length: 0.281
+Rest length: 0.277
 Opt fiber length: 0.089
 Tendon slack length: 0.126
 Number of points: 5
@@ -33568,7 +33568,7 @@ Number of muscle wrappings: 0
 Name: vas_int_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1365.0
-Rest length: 0.249
+Rest length: 0.246
 Opt fiber length: 0.087
 Tendon slack length: 0.136
 Number of points: 4
@@ -33582,7 +33582,7 @@ Number of muscle wrappings: 0
 Name: vas_lat_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1871.0
-Rest length: 0.304
+Rest length: 0.300
 Opt fiber length: 0.084
 Tendon slack length: 0.157
 Number of points: 5
@@ -33597,7 +33597,7 @@ Number of muscle wrappings: 0
 Name: med_gas_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 1558.0
-Rest length: 0.451
+Rest length: 0.448
 Opt fiber length: 0.060
 Tendon slack length: 0.390
 Number of points: 3
@@ -33610,7 +33610,7 @@ Number of muscle wrappings: 0
 Name: lat_gas_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 683.0
-Rest length: 0.447
+Rest length: 0.445
 Opt fiber length: 0.064
 Tendon slack length: 0.380
 Number of points: 3
@@ -33729,7 +33729,7 @@ Number of muscle wrappings: 0
 Name: per_tert_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 180.0
-Rest length: 0.178
+Rest length: 0.179
 Opt fiber length: 0.079
 Tendon slack length: 0.100
 Number of points: 3
@@ -33775,7 +33775,7 @@ Number of muscle wrappings: 0
 Name: ercspn_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 2500.0
-Rest length: 0.150
+Rest length: 0.160
 Opt fiber length: 0.120
 Tendon slack length: 0.030
 Number of points: 2
@@ -33787,7 +33787,7 @@ Number of muscle wrappings: 0
 Name: ercspn_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 2500.0
-Rest length: 0.150
+Rest length: 0.165
 Opt fiber length: 0.120
 Tendon slack length: 0.030
 Number of points: 2
@@ -33799,7 +33799,7 @@ Number of muscle wrappings: 0
 Name: intobl_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 900.0
-Rest length: 0.199
+Rest length: 0.179
 Opt fiber length: 0.100
 Tendon slack length: 0.100
 Number of points: 2
@@ -33811,7 +33811,7 @@ Number of muscle wrappings: 0
 Name: intobl_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 900.0
-Rest length: 0.199
+Rest length: 0.185
 Opt fiber length: 0.100
 Tendon slack length: 0.100
 Number of points: 2
@@ -33823,7 +33823,7 @@ Number of muscle wrappings: 0
 Name: extobl_r
 Material: Thelen2003AxialMuscle
 Max isometric force: 900.0
-Rest length: 0.274
+Rest length: 0.245
 Opt fiber length: 0.120
 Tendon slack length: 0.140
 Number of points: 2
@@ -33835,7 +33835,7 @@ Number of muscle wrappings: 0
 Name: extobl_l
 Material: Thelen2003AxialMuscle
 Max isometric force: 900.0
-Rest length: 0.274
+Rest length: 0.257
 Opt fiber length: 0.120
 Tendon slack length: 0.140
 Number of points: 2
@@ -33946,76 +33946,76 @@ Contact Interface: bodyset#femur_r-bodyset#pelvis
 Bilateral vertex contact: false
 Body or Group A: femur_r	Body or Group B: pelvis
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 28.537
+Contact compliance: 1.000
+Contact damping: 9.024
 
 Contact Interface: bodyset#tibia_r-bodyset#femur_r
 Bilateral vertex contact: false
 Body or Group A: tibia_r	Body or Group B: femur_r
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 22.419
+Contact compliance: 1.000
+Contact damping: 7.089
 
 Contact Interface: bodyset#talus_r-bodyset#tibia_r
 Bilateral vertex contact: false
 Body or Group A: talus_r	Body or Group B: tibia_r
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 12.129
+Contact compliance: 1.000
+Contact damping: 3.835
 
 Contact Interface: bodyset#calcn_r-bodyset#talus_r
 Bilateral vertex contact: false
 Body or Group A: calcn_r	Body or Group B: talus_r
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 7.222
+Contact compliance: 1.000
+Contact damping: 2.284
 
 Contact Interface: bodyset#toes_r-bodyset#calcn_r
 Bilateral vertex contact: false
 Body or Group A: toes_r	Body or Group B: calcn_r
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 7.527
+Contact compliance: 1.000
+Contact damping: 2.380
 
 Contact Interface: bodyset#femur_l-bodyset#pelvis
 Bilateral vertex contact: false
 Body or Group A: femur_l	Body or Group B: pelvis
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 28.537
+Contact compliance: 1.000
+Contact damping: 9.024
 
 Contact Interface: bodyset#tibia_l-bodyset#femur_l
 Bilateral vertex contact: false
 Body or Group A: tibia_l	Body or Group B: femur_l
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 22.419
+Contact compliance: 1.000
+Contact damping: 7.089
 
 Contact Interface: bodyset#talus_l-bodyset#tibia_l
 Bilateral vertex contact: false
 Body or Group A: talus_l	Body or Group B: tibia_l
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 12.129
+Contact compliance: 1.000
+Contact damping: 3.835
 
 Contact Interface: bodyset#calcn_l-bodyset#talus_l
 Bilateral vertex contact: false
 Body or Group A: calcn_l	Body or Group B: talus_l
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 7.222
+Contact compliance: 1.000
+Contact damping: 2.284
 
 Contact Interface: bodyset#toes_l-bodyset#calcn_l
 Bilateral vertex contact: false
 Body or Group A: toes_l	Body or Group B: calcn_l
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 7.527
+Contact compliance: 1.000
+Contact damping: 2.380
 
 Contact Interface: bodyset#torso-bodyset#pelvis
 Bilateral vertex contact: false
 Body or Group A: torso	Body or Group B: pelvis
 Penetration Tolerance: 0.001
-Contact compliance: 0.100
-Contact damping: 42.163
+Contact compliance: 1.000
+Contact damping: 13.333
 

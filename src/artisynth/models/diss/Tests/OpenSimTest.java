@@ -569,8 +569,8 @@ public class OpenSimTest extends RootModel {
          double[] weights = new double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
          switch (body.getName ()) {
             case "calcn_r":
-               maxForce = 300;
-               maxMoment = 80;
+               maxForce = 100;
+               maxMoment = 50;
                maxScale[0] = 1;
                maxScale[1] = 1;
                maxScale[2] = 1;
@@ -579,8 +579,8 @@ public class OpenSimTest extends RootModel {
                maxScale[5] = 1;
                break;
             case "calcn_l":
-               maxForce = 300;
-               maxMoment = 80;
+               maxForce = 100;
+               maxMoment = 50;
                maxScale[0] = 1;
                maxScale[1] = 1;
                maxScale[2] = 1;
@@ -723,6 +723,7 @@ public class OpenSimTest extends RootModel {
       myBodies.forEach (b -> {
          createProbeAndPanel (b, null, "position", start, stop, step);
          createProbeAndPanel (b, null, "orientation", start, stop, step);
+         createProbeAndPanel (b, null, "force", start, stop, step);
       });
    }
 

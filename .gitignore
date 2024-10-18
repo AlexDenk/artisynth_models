@@ -56,22 +56,3 @@ CVS
 # MacOS files
 ######################
 .DS_Store
-src/artisynth/models/diss/Tests/OpenSimTest/Output/ankle_l ankle_angle_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/ankle_r ankle_angle_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/back lumbar_bending.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/back lumbar_extension.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/back lumbar_rotation.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/hip_l hip_adduction_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/hip_l hip_flexion_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/hip_l hip_rotation_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/hip_r hip_adduction_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/hip_r hip_flexion_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/hip_r hip_rotation_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/knee_l knee_angle_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/knee_r knee_angle_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/mtp_l mtp_angle_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/mtp_r mtp_angle_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_input_file.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/subtalar_l subtalar_angle_l.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/subtalar_r subtalar_angle_r.txt
-src/artisynth/models/diss/Tests/OpenSimTest/Output/OpenSimTest_message_file.txt

@@ -287,6 +287,7 @@ public class InverseTest extends RootModel {
       myBodies.forEach (b -> {
          createProbeAndPanel (b, null, "position", start, stop, step);
          createProbeAndPanel (b, null, "orientation", start, stop, step);
+         createProbeAndPanel (b, null, "force", start, stop, step);
       });
    }
 
